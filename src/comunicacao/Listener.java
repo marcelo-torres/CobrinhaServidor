@@ -11,58 +11,55 @@ import java.net.Socket;
  */
 public class Listener implements Runnable {
     
-    private int porta;
+    private final int PORTA;
     private ServerSocket socketDoServidor = null;
     private boolean escutar = true;
-    protected Thread runningThread = null;
     
     public Listener(int porta) {
-        this.porta = porta;
+        this.PORTA = porta;
     }
     
     @Override
     public void run() {
-        synchronized(this){
-            this.runningThread = Thread.currentThread();
-        }
         this.abrirSocketDoServidor();
         
-        while(!this.servidorPausado()) {
+        while(this.ouvindo()) {
             Socket socketDoCliente = null;
             
             try {
                 socketDoCliente = this.socketDoServidor.accept();
             } catch (IOException e) {
-                if(this.servidorPausado()) {
+                if(this.ouvindo()) {
                     System.out.println("Servidor pausado") ;
                     return;
                 }
-                throw new RuntimeException("Erro ao aceitar conexao", e);
+                throw new FalhaDeComunicacaoEmTempoRealException("Erro ao aceitar conexao", e);
             }
-
-                new Thread(new Sessao(socketDoCliente)).start();
-            }    
+            
+            new Thread(new Sessao(socketDoCliente)).start();
+        }    
         
     }
     
-    private synchronized boolean servidorPausado() {
-        return !(this.escutar);
+    
+    private synchronized boolean ouvindo() {
+        return this.escutar;
     }
 
-    public synchronized void parar(){
+    public synchronized void parar() throws IOException {
         this.escutar = false;
         try {
             this.socketDoServidor.close();
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao fechar o servidor", e);
+            throw new IOException("Erro ao fechar o Listener", e);
         }
     }
 
     private void abrirSocketDoServidor() {
         try {
-            this.socketDoServidor = new ServerSocket(this.porta);
+            this.socketDoServidor = new ServerSocket(this.PORTA);
         } catch (IOException e) {
-            throw new RuntimeException("Nao eh possivel abrir um socket na porta " + porta, e);
+            throw new RuntimeException("Nao é possível abrir um socket na porta " + PORTA + ": " + e.getMessage());
         }
     }
     
