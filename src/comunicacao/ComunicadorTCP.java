@@ -1,5 +1,6 @@
 package comunicacao;
 
+import static comunicacao.Comunicador.TipoMensagem.FECHAR_CONEXAO;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
@@ -8,6 +9,8 @@ import java.io.ObjectOutputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
+import static comunicacao.Comunicador.TipoMensagem.PEDIR_FECHAMENTO_CONEXAO;
 
 /**
  * Gerencia uma comunicacao TCP entre o cliente e o servidor. As mensagens a
@@ -23,15 +26,18 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     
         private final ObjectInputStream ENTRADA;
         private final ReceptorDeMensagem<byte[]> RECEPTOR_DE_MENSAGEM;
+        private final Enviador ENVIADOR;
     
         private boolean executando;
         
         public Receptor(ObjectInputStream entrada, 
-                ReceptorDeMensagem<byte[]>  receptorDeMensagem) 
+                ReceptorDeMensagem<byte[]>  receptorDeMensagem,
+                Enviador enviador) 
                 throws IOException {
             
             this.ENTRADA = entrada;
             this.RECEPTOR_DE_MENSAGEM = receptorDeMensagem;
+            this.ENVIADOR = enviador;
             
             this.executando = true;
         }
@@ -42,6 +48,16 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
             while(this.emExecucao()) {
                 
                 try {
+                    TipoMensagem controle = (TipoMensagem) this.ENTRADA.readObject(); 
+                    if(controle.equals(FECHAR_CONEXAO)) {
+                        this.pararExecucao();
+                        continue;
+                    } else if(controle.equals(PEDIR_FECHAMENTO_CONEXAO)) {
+                        this.pararExecucao();
+                        this.ENVIADOR.enviarFechamentoDaConexao();
+                        continue;
+                    }
+                        
                     byte[] mensagem = (byte[]) this.ENTRADA.readObject();
                     this.RECEPTOR_DE_MENSAGEM.receberMensagem(mensagem);
                 } catch(EOFException eofe) { 
@@ -100,6 +116,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                 byte[] mensagem = this.MENSAGENS_PARA_ENVIAR.remover();
                 if(mensagem != null) {
                     try {
+                        this.SAIDA.writeObject(TipoMensagem.RECEBER_MENSAGEM);
                         this.SAIDA.writeObject(mensagem);
                         this.SAIDA.flush();
                     } catch(IOException ioe) {
@@ -126,6 +143,20 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         public void close() throws IOException {
             this.pararExecucao();
             this.SAIDA.close();
+        }
+        
+        public void enviarPedidoFechamentoDaConexao() throws IOException {
+            if(this.emExecucao()) {
+                this.SAIDA.writeObject(PEDIR_FECHAMENTO_CONEXAO);
+                this.SAIDA.flush();
+            }
+        }
+        
+        public void enviarFechamentoDaConexao() throws IOException {
+            if(this.emExecucao()) {
+                this.SAIDA.writeObject(FECHAR_CONEXAO);
+                this.SAIDA.flush();
+            }
         }
         
         private void esperar(int tempo) {
@@ -163,30 +194,44 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     
     @Override
     public void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException {
-        this.abrirECarregarSocket(enderecoServidor, portaServidor);
+        Socket socket = this.abrirSocket(enderecoServidor, portaServidor);
+        this.carregarSocket(socket);
         this.prepararThreadsDeComunicacao();
         this.threadReceptor.start();
-        this.aberto = true;
+        super.aberto = true;
     }
     
     public void iniciar(Socket socket) throws IOException {
         this.carregarSocket(socket);
         this.prepararThreadsDeComunicacao();
         this.threadReceptor.start();
-        this.aberto = true;
+        super.aberto = true;
+    }
+    
+    public void encerrarConexao() throws IOException {
+        this.enviador.enviarFechamentoDaConexao();
     }
     
     @Override
     public void close() throws IOException {
         if(super.aberto) {
             this.aberto = false;
-            this.enviador.close();
-            this.receptor.close();
+            
+            try {
+                this.enviador.close();
+                this.receptor.close();
+            } catch(SocketException se) {
+            
+            } catch(IOException ioe) {
+            
+            }
+            
             this.socket.close();
 
             this.threadEnviador.interrupt();
             this.threadReceptor.interrupt();
         }
+        super.aberto = false;
     }
     
     @Override
@@ -202,13 +247,14 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     }
 
     
-    private void abrirECarregarSocket(InetAddress enderecoServidor, int portaServidor) throws IOException {
+    private Socket abrirSocket(InetAddress enderecoServidor, int portaServidor) throws IOException {
+        Socket socket = null;
         try {
-            Socket socket = new Socket(enderecoServidor, portaServidor);
-            this.carregarSocket(socket);
+            socket = new Socket(enderecoServidor, portaServidor);
         } catch (IOException ioe) {
             throw new IOException ("Nao eh possivel se conectar ao servidor", ioe);
         }
+        return socket;
     }
     
     private void carregarSocket(Socket socket) {
@@ -243,11 +289,11 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                     throw new RuntimeException("Não é possível prepararar as threads de comunicacação");
             }
             
-            this.receptor = new Receptor(entrada, super.RECEPTOR_DE_MENSAGEM);
             this.enviador = new Enviador(saida, super.MENSAGENS_PARA_ENVIAR);
-                
-            this.criarThreadReceptor();
+            this.receptor = new Receptor(entrada, super.RECEPTOR_DE_MENSAGEM, this.enviador);
+            
             this.criarThreadEnviador();
+            this.criarThreadReceptor();
         } catch(IOException ioe) {
             throw new IOException("Não é possível criar as threads de comunicação: " + ioe.getMessage());
         }

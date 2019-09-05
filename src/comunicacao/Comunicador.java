@@ -56,6 +56,20 @@ public abstract class Comunicador {
             return this.MODO;
         }
     }
+    
+    protected enum TipoMensagem {
+        FECHAR_CONEXAO(0), PEDIR_FECHAMENTO_CONEXAO(1), RECEBER_MENSAGEM(2);
+        
+        private final int TIPO_MENSAGEM;
+        
+        TipoMensagem(int tipoMensagem) {
+            TIPO_MENSAGEM = tipoMensagem;
+        }
+        
+        public int getTipoMensagem() {
+            return this.TIPO_MENSAGEM;
+        }
+    }
 
     protected final Modo MODO;
     protected boolean aberto = false;
@@ -75,6 +89,10 @@ public abstract class Comunicador {
         this.RECEPTOR_DE_MENSAGEM = receptorDeMensagem;
         
         this.MENSAGENS_PARA_ENVIAR = new GerenciadorDeFilaDeMensagens(tamanhoDaFilaDeEnvio);
+    }
+    
+    public boolean aberto() {
+        return this.aberto;
     }
     
     public abstract void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException;

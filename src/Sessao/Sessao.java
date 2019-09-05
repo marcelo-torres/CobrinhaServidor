@@ -58,10 +58,11 @@ public class Sessao implements Runnable {
         System.out.println("Iniciando sessao");
         
         InetAddress enderecoCliente = obterEnderecoDoCliente();
+        int portaDeEscutaDoCliente = 1235;
         
         try {
             this.COMUNICADOR_TCP.iniciar(socketDoCliente);
-            this.COMUNICADOR_UDP.iniciar(enderecoCliente, 1234);
+            this.COMUNICADOR_UDP.iniciar(enderecoCliente, portaDeEscutaDoCliente);
         } catch(IOException ioe) {
             System.out.println("[Sessao] Erro ao iniciar o comunicador: ");
             ioe.printStackTrace();

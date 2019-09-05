@@ -202,7 +202,8 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
 
     @Override
     public void close() throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.aberto = false;
+        this.socket.close();
     }
     
     private void prepararThreadsDeComunicacao() throws IOException {
