@@ -30,7 +30,8 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     
         private boolean executando;
         
-        public Receptor(ObjectInputStream entrada, 
+        public Receptor(
+                ObjectInputStream entrada, 
                 ReceptorDeMensagem<byte[]>  receptorDeMensagem,
                 Enviador enviador) 
                 throws IOException {
@@ -38,28 +39,30 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
             this.ENTRADA = entrada;
             this.RECEPTOR_DE_MENSAGEM = receptorDeMensagem;
             this.ENVIADOR = enviador;
-            
-            this.executando = true;
         }
         
         @Override
         public void run() {
-            
+            this.executando = true;
             while(this.emExecucao()) {
                 
                 try {
                     TipoMensagem controle = (TipoMensagem) this.ENTRADA.readObject(); 
-                    if(controle.equals(FECHAR_CONEXAO)) {
-                        this.pararExecucao();
-                        continue;
-                    } else if(controle.equals(PEDIR_FECHAMENTO_CONEXAO)) {
-                        this.pararExecucao();
-                        this.ENVIADOR.enviarFechamentoDaConexao();
-                        continue;
+                    switch (controle) {
+                        case FECHAR_CONEXAO:
+                            this.pararExecucao();
+                            continue;
+                        case PEDIR_FECHAMENTO_CONEXAO:
+                            this.pararExecucao();
+                            this.ENVIADOR.enviarFechamentoDaConexao();
+                            continue;
+                        case RECEBER_MENSAGEM:
+                            byte[] mensagem = (byte[]) this.ENTRADA.readObject();
+                            this.RECEPTOR_DE_MENSAGEM.receberMensagem(mensagem);
+                            continue;
+                        default:
+                            throw new FalhaDeComunicacaoEmTempoRealException("Mensagem de controle desconhecida");
                     }
-                        
-                    byte[] mensagem = (byte[]) this.ENTRADA.readObject();
-                    this.RECEPTOR_DE_MENSAGEM.receberMensagem(mensagem);
                 } catch(EOFException eofe) { 
                     throw new FalhaDeComunicacaoEmTempoRealException("Conexão fechada: " + eofe.getMessage());
                 } catch(IOException ioe) {
@@ -81,7 +84,6 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
 
         @Override
         public void close() throws IOException {
-            this.pararExecucao();
             this.ENTRADA.close();
         }
     }
@@ -100,7 +102,8 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         
         private boolean executando;
         
-        public Enviador(ObjectOutputStream saida, 
+        public Enviador(
+                ObjectOutputStream saida, 
                 GerenciadorDeFilaDeMensagens mensagensParaEnviar) 
                 throws IOException {
             
@@ -124,9 +127,8 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                     }
                 } 
                 
-                // Dorme para dar tempo de outras mensagens serem colocadas na fila
+                // Espera para dar tempo de outras mensagens serem colocadas na fila
                 this.esperar(10);
-                
                 this.executando = (this.MENSAGENS_PARA_ENVIAR.tamanho() > 0);
             }
         }
@@ -141,29 +143,24 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         
         @Override
         public void close() throws IOException {
-            this.pararExecucao();
             this.SAIDA.close();
         }
         
         public void enviarPedidoFechamentoDaConexao() throws IOException {
-            if(this.emExecucao()) {
-                this.SAIDA.writeObject(PEDIR_FECHAMENTO_CONEXAO);
-                this.SAIDA.flush();
-            }
+            this.SAIDA.writeObject(PEDIR_FECHAMENTO_CONEXAO);
+            this.SAIDA.flush();
         }
         
         public void enviarFechamentoDaConexao() throws IOException {
-            if(this.emExecucao()) {
-                this.SAIDA.writeObject(FECHAR_CONEXAO);
-                this.SAIDA.flush();
-            }
+            this.SAIDA.writeObject(FECHAR_CONEXAO);
+            this.SAIDA.flush();
         }
         
         private void esperar(int tempo) {
             try {
                 new Thread().sleep(tempo);
             } catch(InterruptedException ie) {
-                // Nao faz nada
+                // Apenas registra no log
             }
         }
     }
@@ -181,9 +178,9 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     public ComunicadorTCP(Modo modo,
             ReceptorDeMensagem<byte[]> receptorDeMensagem,
             UncaughtExceptionHandler gerenciadorDeException,
-            int tamanhoDaFilaDeEnvio) {
+            int tamanhoMaximoDaFilaDeEnvio) {
 
-            super(Comunicador.Modo.SERVIDOR, receptorDeMensagem, tamanhoDaFilaDeEnvio);
+            super(Comunicador.Modo.SERVIDOR, receptorDeMensagem, tamanhoMaximoDaFilaDeEnvio);
             
             if(gerenciadorDeException == null) {
                 throw new IllegalArgumentException("O gerenciador de exception não pode ser nulo");
@@ -198,40 +195,26 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         this.carregarSocket(socket);
         this.prepararThreadsDeComunicacao();
         this.threadReceptor.start();
-        super.aberto = true;
     }
     
     public void iniciar(Socket socket) throws IOException {
         this.carregarSocket(socket);
         this.prepararThreadsDeComunicacao();
         this.threadReceptor.start();
-        super.aberto = true;
     }
     
     public void encerrarConexao() throws IOException {
-        this.enviador.enviarFechamentoDaConexao();
+        this.enviador.enviarPedidoFechamentoDaConexao();
     }
     
     @Override
     public void close() throws IOException {
-        if(super.aberto) {
-            this.aberto = false;
-            
-            try {
-                this.enviador.close();
-                this.receptor.close();
-            } catch(SocketException se) {
-            
-            } catch(IOException ioe) {
-            
-            }
-            
-            this.socket.close();
+        this.enviador.close();
+        this.receptor.close();
+        this.socket.close();
 
-            this.threadEnviador.interrupt();
-            this.threadReceptor.interrupt();
-        }
-        super.aberto = false;
+        this.threadEnviador.interrupt();
+        this.threadReceptor.interrupt();
     }
     
     @Override
@@ -261,11 +244,9 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         if(socket == null) {
             throw new IllegalArgumentException("O socket não pode ser nulo");
         }
-        
         if(socket.isClosed()) {
             throw new IllegalArgumentException("O socket não pode estar fechado");
         }
-        
         this.socket = socket;
     }
     

@@ -30,15 +30,12 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
             this.SOCKET = socket;
             this.TAMANHO_DA_MENSAGEM = tamanhoDaMensagem;
             this.RECEPTOR_DE_MENSAGEM = receptorDeMensagem;
-            
-            this.executando = true;
         }
         
         @Override
         public void run() {
-            
+            this.executando = true;
             while(this.emExecucao()) {
-                
                 try {
                     byte[] mensagem = new byte[this.TAMANHO_DA_MENSAGEM]; 
                     DatagramPacket pacote = new DatagramPacket(mensagem, mensagem.length);
@@ -93,7 +90,6 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
         @Override
         public void run() {
             this.executando = (this.MENSAGENS_PARA_ENVIAR.tamanho() > 0);
-            
             while(this.emExecucao()) {    
                 byte[] mensagem = this.MENSAGENS_PARA_ENVIAR.remover();
                 if(mensagem != null) {
@@ -112,7 +108,6 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                 
                 // Dorme para dar tempo de outras mensagens serem colocadas na fila
                 this.esperar(10);
-                
                 this.executando = (this.MENSAGENS_PARA_ENVIAR.tamanho() > 0);
             }
         }
@@ -129,7 +124,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
             try {
                 new Thread().sleep(tempo);
             } catch(InterruptedException ie) {
-                // Nao faz nada
+                // Registra no log
             }
         }
     }
@@ -153,11 +148,11 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
     public ComunicadorUDP(Modo modo,
             ReceptorDeMensagem<byte[]> receptorDeMensagem,
             UncaughtExceptionHandler gerenciadorDeException,
-            int tamanhoDaFilaDeEnvio,
+            int tamanhoMaximoDaFilaDeEnvio,
             int tamanhoDaMensagem,
             int portaCliente) {
         
-        super(modo, receptorDeMensagem, 10);
+        super(modo, receptorDeMensagem, tamanhoMaximoDaFilaDeEnvio);
         
         if(gerenciadorDeException == null) {
             throw new IllegalArgumentException("O gerenciador de exception não pode ser nulo");
@@ -185,7 +180,6 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
         if(super.MODO == Modo.CLIENTE) {
             this.threadReceptor.start();
         }
-        this.aberto = true;
     }
     
     @Override
@@ -202,7 +196,6 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
 
     @Override
     public void close() throws IOException {
-        this.aberto = false;
         this.socket.close();
     }
     

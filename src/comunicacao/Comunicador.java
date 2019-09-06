@@ -1,6 +1,5 @@
 package comunicacao;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collections;
@@ -72,14 +71,12 @@ public abstract class Comunicador {
     }
 
     protected final Modo MODO;
-    protected boolean aberto = false;
-    
     protected final ReceptorDeMensagem<byte[]> RECEPTOR_DE_MENSAGEM;
     protected final GerenciadorDeFilaDeMensagens MENSAGENS_PARA_ENVIAR;
     
     public Comunicador(Modo modo,
             ReceptorDeMensagem<byte[]> receptorDeMensagem,
-            int tamanhoDaFilaDeEnvio) {
+            int tamanhoMaximoDaFilaDeEnvio) {
         
         if(modo == null || receptorDeMensagem == null ) {
             throw new IllegalArgumentException("Não é possível criar o comunicador, parâmetro nulo");
@@ -88,11 +85,7 @@ public abstract class Comunicador {
         this.MODO = modo;
         this.RECEPTOR_DE_MENSAGEM = receptorDeMensagem;
         
-        this.MENSAGENS_PARA_ENVIAR = new GerenciadorDeFilaDeMensagens(tamanhoDaFilaDeEnvio);
-    }
-    
-    public boolean aberto() {
-        return this.aberto;
+        this.MENSAGENS_PARA_ENVIAR = new GerenciadorDeFilaDeMensagens(tamanhoMaximoDaFilaDeEnvio);
     }
     
     public abstract void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException;
