@@ -1,6 +1,7 @@
 package comunicacao;
 
 import static comunicacao.Comunicador.TipoMensagem.FECHAR_CONEXAO;
+import static comunicacao.Comunicador.TipoMensagem.PEDIR_FECHAMENTO_CONEXAO;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
@@ -10,7 +11,6 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import static comunicacao.Comunicador.TipoMensagem.PEDIR_FECHAMENTO_CONEXAO;
 
 /**
  * Gerencia uma comunicacao TCP entre o cliente e o servidor. As mensagens a
@@ -22,33 +22,35 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
      * Responsavel pelo recebimento de mensagens. Quando uma mensagem eh
      * recebida encaminha para o ReceptorDeMensagem associado.
      */
-    private static class Receptor implements Runnable, Closeable { 
+    private static class Receptor extends ThreadEscrava implements Runnable, Closeable { 
     
         private final ObjectInputStream ENTRADA;
-        private final ReceptorDeMensagem<byte[]> RECEPTOR_DE_MENSAGEM;
+        private final FilaMonitorada<byte[]> FILA_RECEBIMENTO_MENSAGENS;
         private final Enviador ENVIADOR;
-    
-        private boolean executando;
+        private final ControladorKeepAlive CONTROLADOR_KEEP_ALIVE;
         
         public Receptor(
                 ObjectInputStream entrada, 
-                ReceptorDeMensagem<byte[]>  receptorDeMensagem,
-                Enviador enviador) 
-                throws IOException {
+                FilaMonitorada<byte[]> filaDeRecebimentoDeMensagens,
+                Enviador enviador,
+                ControladorKeepAlive controladorKeepAlive) {
             
             this.ENTRADA = entrada;
-            this.RECEPTOR_DE_MENSAGEM = receptorDeMensagem;
+            this.FILA_RECEBIMENTO_MENSAGENS = filaDeRecebimentoDeMensagens;
             this.ENVIADOR = enviador;
+            this.CONTROLADOR_KEEP_ALIVE = controladorKeepAlive;
         }
         
         @Override
         public void run() {
-            this.executando = true;
-            while(this.emExecucao()) {
-                
+            super.executar();
+            while(super.emExecucao()) {   
                 try {
-                    TipoMensagem controle = (TipoMensagem) this.ENTRADA.readObject(); 
+                    TipoMensagem controle = (TipoMensagem) this.ENTRADA.readObject();
+                    this.CONTROLADOR_KEEP_ALIVE.incrementarQuantidadeDeMensagensRecebidas();
                     switch (controle) {
+                        case KEEP_ALIVE:
+                            continue;
                         case FECHAR_CONEXAO:
                             this.pararExecucao();
                             continue;
@@ -58,7 +60,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                             continue;
                         case RECEBER_MENSAGEM:
                             byte[] mensagem = (byte[]) this.ENTRADA.readObject();
-                            this.RECEPTOR_DE_MENSAGEM.receberMensagem(mensagem);
+                            this.FILA_RECEBIMENTO_MENSAGENS.adicionar(mensagem);
                             continue;
                         default:
                             throw new FalhaDeComunicacaoEmTempoRealException("Mensagem de controle desconhecida");
@@ -73,17 +75,10 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                 }
             }
         }
-        
-        public synchronized boolean emExecucao() {
-            return this.executando;
-        }
-        
-        public synchronized void pararExecucao() {
-            this.executando = false;
-        }
 
         @Override
         public void close() throws IOException {
+            if(super.emExecucao()) super.pararExecucao();
             this.ENTRADA.close();
         }
     }
@@ -95,28 +90,24 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
      * possivel que o metodo run() seja interrompido pelos metodo
      * pararExecucao() ou close().
      */
-    private static class Enviador implements Runnable, Closeable {
+    private static class Enviador extends ThreadEscrava implements Runnable, Closeable {
         
         private final ObjectOutputStream SAIDA;
-        private final GerenciadorDeFilaDeMensagens MENSAGENS_PARA_ENVIAR;
-        
-        private boolean executando;
+        private final FilaMonitorada<byte[]>  FILA_ENVIO_MENSAGENS;
         
         public Enviador(
                 ObjectOutputStream saida, 
-                GerenciadorDeFilaDeMensagens mensagensParaEnviar) 
-                throws IOException {
+                FilaMonitorada<byte[]> filaDeMensagensParaEnviar) {
             
             this.SAIDA = saida;
-            this.MENSAGENS_PARA_ENVIAR = mensagensParaEnviar;
+            this.FILA_ENVIO_MENSAGENS = filaDeMensagensParaEnviar;
         }
         
         @Override
         public void run() {
-            this.executando = (this.MENSAGENS_PARA_ENVIAR.tamanho() > 0);
-            
-            while(this.emExecucao()) {    
-                byte[] mensagem = this.MENSAGENS_PARA_ENVIAR.remover();
+            super.executar();
+            while(super.emExecucao()) {    
+                byte[] mensagem = this.FILA_ENVIO_MENSAGENS.remover();
                 if(mensagem != null) {
                     try {
                         this.SAIDA.writeObject(TipoMensagem.RECEBER_MENSAGEM);
@@ -125,24 +116,13 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                     } catch(IOException ioe) {
                         throw new FalhaDeComunicacaoEmTempoRealException("Não foi possível enviar a mensagem: " + ioe.getMessage());
                     }
-                } 
-                
-                // Espera para dar tempo de outras mensagens serem colocadas na fila
-                this.esperar(10);
-                this.executando = (this.MENSAGENS_PARA_ENVIAR.tamanho() > 0);
+                }
             }
-        }
-        
-        public synchronized boolean emExecucao() {
-            return this.executando;
-        }
-        
-        public synchronized void pararExecucao() {
-            this.executando = false;
         }
         
         @Override
         public void close() throws IOException {
+            if(super.emExecucao()) super.pararExecucao();
             this.SAIDA.close();
         }
         
@@ -155,14 +135,6 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
             this.SAIDA.writeObject(FECHAR_CONEXAO);
             this.SAIDA.flush();
         }
-        
-        private void esperar(int tempo) {
-            try {
-                new Thread().sleep(tempo);
-            } catch(InterruptedException ie) {
-                // Apenas registra no log
-            }
-        }
     }
     
     /* ###################################################################### */
@@ -172,15 +144,19 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     private Thread threadReceptor;
     private Thread threadEnviador;
     private Receptor receptor;
-    private Enviador enviador; 
+    private Enviador enviador;
+    private ControladorKeepAlive controladorKeepAlive;
     private UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
     
+    private final int TEMPO_LIMITE_KEEP_ALIVE = (1)/*S*/ * (1000)/*MS*/;
+    private final int QUANTIDADE_MENSAGENS_KEEP_ALIVE = 3;
+    
     public ComunicadorTCP(Modo modo,
-            ReceptorDeMensagem<byte[]> receptorDeMensagem,
-            UncaughtExceptionHandler gerenciadorDeException,
-            int tamanhoMaximoDaFilaDeEnvio) {
+            FilaMonitorada<byte[]> filaDeEnvioDeMensagens,
+            FilaMonitorada<byte[]> filaDeRecebimentoDeMensagens,
+            UncaughtExceptionHandler gerenciadorDeException) {
 
-            super(Comunicador.Modo.SERVIDOR, receptorDeMensagem, tamanhoMaximoDaFilaDeEnvio);
+            super(Comunicador.Modo.SERVIDOR, filaDeEnvioDeMensagens, filaDeRecebimentoDeMensagens);
             
             if(gerenciadorDeException == null) {
                 throw new IllegalArgumentException("O gerenciador de exception não pode ser nulo");
@@ -191,42 +167,45 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     
     @Override
     public void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException {
-        Socket socket = this.abrirSocket(enderecoServidor, portaServidor);
-        this.carregarSocket(socket);
+        Socket socketNovo = this.abrirSocket(enderecoServidor, portaServidor);
+        this.carregarSocket(socketNovo);
         this.prepararThreadsDeComunicacao();
-        this.threadReceptor.start();
+        this.iniciarThreadDeComunicacao();
+        this.controladorKeepAlive.iniciar();
     }
     
-    public void iniciar(Socket socket) throws IOException {
-        this.carregarSocket(socket);
+    public void iniciar(Socket socketNovo) throws IOException {
+        this.carregarSocket(socketNovo);
         this.prepararThreadsDeComunicacao();
-        this.threadReceptor.start();
+        this.iniciarThreadDeComunicacao();
+        this.controladorKeepAlive.iniciar();
     }
     
     public void encerrarConexao() throws IOException {
+        this.controladorKeepAlive.encerrar();
         this.enviador.enviarPedidoFechamentoDaConexao();
+        this.enviador.pararExecucao();
     }
     
     @Override
-    public void close() throws IOException {
-        this.enviador.close();
-        this.receptor.close();
-        this.socket.close();
-
+    public void close() {
+        try {
+            this.enviador.close();
+            this.receptor.close();
+            this.socket.close();
+        } catch(SocketException sk) {
+            System.out.println("[LOG][ERRO]: " + sk.getMessage());
+        } catch(IOException ioe) {
+            System.out.println("[LOG][ERRO]: " + ioe.getMessage());
+        }
+            
         this.threadEnviador.interrupt();
         this.threadReceptor.interrupt();
     }
     
     @Override
     public synchronized void enviarMensagem(byte[] mensagem) {
-        this.MENSAGENS_PARA_ENVIAR.inserir(mensagem);
-        
-        // Uma thread de envio permanece ativa apenas enquanto existem mensagens
-        // na fila ou ate ser interrompida.
-        if(!this.threadEnviador.isAlive()) {
-            this.criarThreadEnviador();
-            this.threadEnviador.start();
-        }
+        super.FILA_ENVIO_MENSAGENS.adicionar(mensagem);
     }
 
     
@@ -251,10 +230,10 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     }
     
     private void prepararThreadsDeComunicacao() throws IOException {
+        ObjectOutputStream saida = null;
+        ObjectInputStream entrada = null;
+        
         try {
-            ObjectOutputStream saida = null;
-            ObjectInputStream entrada = null;
-            
             if(null == super.MODO) {
                 throw new RuntimeException("Não é possível prepararar as threads de comunicacação");
             } else switch (super.MODO) {
@@ -269,26 +248,32 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                 default:
                     throw new RuntimeException("Não é possível prepararar as threads de comunicacação");
             }
-            
-            this.enviador = new Enviador(saida, super.MENSAGENS_PARA_ENVIAR);
-            this.receptor = new Receptor(entrada, super.RECEPTOR_DE_MENSAGEM, this.enviador);
-            
-            this.criarThreadEnviador();
-            this.criarThreadReceptor();
         } catch(IOException ioe) {
-            throw new IOException("Não é possível criar as threads de comunicação: " + ioe.getMessage());
+            throw new IOException("Não é possível estabelecer a comunicação: " + ioe.getMessage());
         }
+        
+        this.controladorKeepAlive = new ControladorKeepAlive(this.GERENCIADOR_DE_EXCEPTION, this.TEMPO_LIMITE_KEEP_ALIVE, this.QUANTIDADE_MENSAGENS_KEEP_ALIVE);
+        
+        this.enviador = new Enviador(saida, super.FILA_ENVIO_MENSAGENS);
+        this.receptor = new Receptor(entrada, super.FILA_RECEBIMENTO_MENSAGENS, this.enviador, this.controladorKeepAlive);
+        
+        this.threadEnviador = this.criarThread(this.enviador, "Receptor_TCP", GERENCIADOR_DE_EXCEPTION);
+        this.threadReceptor = this.criarThread(this.receptor, "Enviador_TCP", GERENCIADOR_DE_EXCEPTION);
     }
     
-    private void criarThreadReceptor() {
-        this.threadReceptor = new Thread(this.receptor);
-        this.threadReceptor.setUncaughtExceptionHandler(GERENCIADOR_DE_EXCEPTION);
-        this.threadReceptor.setName("Receptor_TCP");
+    private Thread criarThread(
+            Runnable runnable,
+            String nome,
+            UncaughtExceptionHandler uncaughtExceptionHandler) {
+        
+        Thread thread = new Thread(runnable, nome);
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
+        
+        return thread;
     }
     
-    private void criarThreadEnviador() {
-        this.threadEnviador = new Thread(this.enviador);
-        this.threadEnviador.setUncaughtExceptionHandler(GERENCIADOR_DE_EXCEPTION);
-        this.threadEnviador.setName("Enviador_TCP");
+    private void iniciarThreadDeComunicacao() {
+        this.threadEnviador.start();
+        this.threadReceptor.start();
     }
 }

@@ -1,45 +1,108 @@
 package comunicacao;
 
 import java.io.IOException;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetAddress;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public abstract class Comunicador {
     
-    /**
-     * Uma fila de mensagens que garante o acesso somente a uma thread.
-     * @param <T> Tipo da mensagem
-     */
-    protected static class GerenciadorDeFilaDeMensagens {
+    protected static class TarefaValidarConexao extends TimerTask {
+
+        private UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
+        private final ControladorKeepAlive CONTROLADOR;
         
-        private final List<byte[]> MENSAGENS;
-        private final int TAMANHO_MAXIMO;
-        
-        public GerenciadorDeFilaDeMensagens(int tamanhoMaximo) {
-            this.MENSAGENS = Collections.synchronizedList(new LinkedList<byte[]>());
-            this.TAMANHO_MAXIMO = tamanhoMaximo;
+        public TarefaValidarConexao(
+                UncaughtExceptionHandler gerenciadorDeException,
+                ControladorKeepAlive controlador) {
+            this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
+            this.CONTROLADOR = controlador;
         }
         
-        public synchronized boolean inserir(byte[] mensagem) {
-            if(this.MENSAGENS.size() == this.TAMANHO_MAXIMO) {
-                return false;
+        @Override
+        public void run() {
+            if(!this.CONTROLADOR.podeReiniciar()) {
+                FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Não é possível se conectar (KeepAlive)");
+                this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
             }
-            this.MENSAGENS.add(mensagem);
-            return true;
+        }
+    }
+    
+    protected static class ControladorKeepAlive {
+        
+        private UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
+        
+        private final int LIMITE_TEMPO;
+        private final int QUANTIDADE_MENSAGENS; 
+        private int quantidadeDeMensagensRecebidas = 0;
+        
+        private ScheduledExecutorService scheduler;
+        private ScheduledFuture tarefasRestantes;
+        
+        /**
+         * 
+         * @param limiteDeTempo Tempo limite em ms
+         * @param quantidadeDeMensagens Quantidade de mensagens para receber dentro do intervalo
+         */
+        public ControladorKeepAlive(UncaughtExceptionHandler gerenciadorDeException, int limiteDeTempo, int quantidadeDeMensagens) {
+            this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
+            this.LIMITE_TEMPO = limiteDeTempo;
+            this.QUANTIDADE_MENSAGENS = quantidadeDeMensagens;
+            this.scheduler = Executors.newScheduledThreadPool(1);
         }
         
-        public synchronized byte[] remover() {
-            if(this.MENSAGENS.size() <= 0) {
-                return null;
+        public void iniciar() {
+            this.reiniciar();
+        }
+        
+        public void encerrar() {
+            this.tarefasRestantes.cancel(false);
+            this.scheduler.shutdownNow();
+        }
+        
+        public synchronized void incrementarQuantidadeDeMensagensRecebidas() {
+            this.quantidadeDeMensagensRecebidas++;
+            if(this.podeReiniciar()) {
+                this.reiniciar();
             }
-            return this.MENSAGENS.remove(0);
         }
         
-        public synchronized int tamanho() {
-            return this.MENSAGENS.size();
-        } 
+        public synchronized boolean podeReiniciar() {
+            return (this.quantidadeDeMensagensRecebidas >= this.QUANTIDADE_MENSAGENS);
+        }
+        
+        private synchronized void reiniciar() {
+            if(this.tarefasRestantes != null) {
+                this.tarefasRestantes.cancel(false);
+            }
+            
+            this.quantidadeDeMensagensRecebidas = 0; 
+            this.tarefasRestantes = this.scheduler.schedule(
+                    new TarefaValidarConexao(GERENCIADOR_DE_EXCEPTION, this),
+                    this.LIMITE_TEMPO,
+                    TimeUnit.MILLISECONDS);
+        }
+    }
+    
+    protected static class ThreadEscrava {
+        
+        private boolean executando = false;
+        
+        public synchronized void executar() {
+            this.executando = true;
+        }
+        
+        public synchronized void pararExecucao() {
+            this.executando = false;
+        }
+        
+        public synchronized boolean emExecucao() {
+            return this.executando;
+        }
     }
     
     public enum Modo {
@@ -57,7 +120,10 @@ public abstract class Comunicador {
     }
     
     protected enum TipoMensagem {
-        FECHAR_CONEXAO(0), PEDIR_FECHAMENTO_CONEXAO(1), RECEBER_MENSAGEM(2);
+        KEEP_ALIVE(0),
+        RECEBER_MENSAGEM(1),
+        FECHAR_CONEXAO(2),
+        PEDIR_FECHAMENTO_CONEXAO(3);
         
         private final int TIPO_MENSAGEM;
         
@@ -71,21 +137,22 @@ public abstract class Comunicador {
     }
 
     protected final Modo MODO;
-    protected final ReceptorDeMensagem<byte[]> RECEPTOR_DE_MENSAGEM;
-    protected final GerenciadorDeFilaDeMensagens MENSAGENS_PARA_ENVIAR;
+    protected final FilaMonitorada<byte[]> FILA_ENVIO_MENSAGENS;
+    protected final FilaMonitorada<byte[]> FILA_RECEBIMENTO_MENSAGENS;
     
     public Comunicador(Modo modo,
-            ReceptorDeMensagem<byte[]> receptorDeMensagem,
-            int tamanhoMaximoDaFilaDeEnvio) {
+            FilaMonitorada<byte[]> filaDeEnvioDeMensagens,
+            FilaMonitorada<byte[]> filaDeRecebimentoDeMensagens) {
         
-        if(modo == null || receptorDeMensagem == null ) {
+        if(modo == null
+                || filaDeEnvioDeMensagens == null
+                || filaDeRecebimentoDeMensagens == null) {
             throw new IllegalArgumentException("Não é possível criar o comunicador, parâmetro nulo");
         }
         
         this.MODO = modo;
-        this.RECEPTOR_DE_MENSAGEM = receptorDeMensagem;
-        
-        this.MENSAGENS_PARA_ENVIAR = new GerenciadorDeFilaDeMensagens(tamanhoMaximoDaFilaDeEnvio);
+        this.FILA_ENVIO_MENSAGENS = filaDeEnvioDeMensagens;
+        this.FILA_RECEBIMENTO_MENSAGENS = filaDeRecebimentoDeMensagens;
     }
     
     public abstract void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException;

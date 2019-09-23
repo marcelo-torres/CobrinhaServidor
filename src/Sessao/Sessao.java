@@ -5,6 +5,7 @@ import comunicacao.Comunicador.Modo;
 import comunicacao.ComunicadorTCP;
 import comunicacao.ComunicadorUDP;
 import comunicacao.Interpretador;
+import comunicacao.Mensageiro;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -16,8 +17,7 @@ import java.net.UnknownHostException;
  */
 public class Sessao implements Runnable {
 
-    private final ComunicadorTCP COMUNICADOR_TCP;
-    private final ComunicadorUDP COMUNICADOR_UDP;
+    private final Mensageiro MENSAGEIRO;
     private final Interpretador INTERPRETADOR;
     
     private Socket socketDoCliente;
@@ -25,31 +25,20 @@ public class Sessao implements Runnable {
     private Thread.UncaughtExceptionHandler gerenciadorDeException = new Thread.UncaughtExceptionHandler() {
         public void uncaughtException(Thread th, Throwable ex) {
             System.out.println("Uncaught exception: " + ex);
-            try {
-                ex.printStackTrace();
-                if(false)COMUNICADOR_TCP.close();
-            } catch(IOException ioe) {
-                //throw new ComunicadorException("Erro no comunicador", ex);
-            }
+            ex.printStackTrace();
         }
     };
     
     public Sessao(Socket socketDoCliente) {
         this.socketDoCliente = socketDoCliente;
         this.INTERPRETADOR = new Interpretador();
-        this.COMUNICADOR_TCP = new ComunicadorTCP(
-                Modo.SERVIDOR,
-                this.INTERPRETADOR,
-                gerenciadorDeException,
-                10);
         
-        this.COMUNICADOR_UDP = new ComunicadorUDP(
-                Comunicador.Modo.SERVIDOR,
-                this.INTERPRETADOR,
-                gerenciadorDeException,
-                10,
-                1024,
-                -1);
+        int portaEscutarUDP = -1;
+        InetAddress enderecoCliente = obterEnderecoDoCliente();
+        int portaTCPServidor = 0;
+        int portaUDPServidor = 1235; // eh preciso receber do cliente
+        
+        this.MENSAGEIRO = new Mensageiro(this.INTERPRETADOR, portaEscutarUDP, enderecoCliente, portaTCPServidor, portaUDPServidor);
     }
     
     @Override
@@ -57,12 +46,12 @@ public class Sessao implements Runnable {
         
         System.out.println("Iniciando sessao");
         
-        InetAddress enderecoCliente = obterEnderecoDoCliente();
-        int portaDeEscutaDoCliente = 1235;
+        
         
         try {
-            this.COMUNICADOR_TCP.iniciar(socketDoCliente);
-            this.COMUNICADOR_UDP.iniciar(enderecoCliente, portaDeEscutaDoCliente);
+            this.MENSAGEIRO.iniciarTCP(socketDoCliente);
+            //this.COMUNICADOR_TCP.iniciar(socketDoCliente);
+            //this.COMUNICADOR_UDP.iniciar(enderecoCliente, portaDeEscutaDoCliente);
         } catch(IOException ioe) {
             System.out.println("[Sessao] Erro ao iniciar o comunicador: ");
             ioe.printStackTrace();
@@ -132,7 +121,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagens) {
             pausar(100);
-            this.COMUNICADOR_TCP.enviarMensagem(mensagem.getBytes());
+            this.MENSAGEIRO.enviarMensagemTCP(mensagem.getBytes());
         }
     }
     
@@ -145,7 +134,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagens) {
             pausar(300);
-            this.COMUNICADOR_TCP.enviarMensagem(mensagem.getBytes());
+            this.MENSAGEIRO.enviarMensagemTCP(mensagem.getBytes());
         }
     }
     
@@ -162,7 +151,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagensUDP) {
             pausar(100);
-            this.COMUNICADOR_UDP.enviarMensagem(mensagem.getBytes());
+            this.MENSAGEIRO.enviarMensagemUDP(mensagem.getBytes());
         }
     }
 }
