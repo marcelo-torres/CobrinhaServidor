@@ -26,8 +26,8 @@ public abstract class Comunicador {
         @Override
         public void run() {
             if(!this.CONTROLADOR.podeReiniciar()) {
-                FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Não é possível se conectar (KeepAlive)");
-                this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
+                FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Conexao perdida (KeepAlive)");
+                //this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
             }
         }
     }

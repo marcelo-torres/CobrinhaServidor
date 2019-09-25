@@ -1,5 +1,7 @@
-package comunicacao;
+    package comunicacao;
 
+import Logger.Logger;
+import static Logger.Logger.Tipo.INFO;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
@@ -155,6 +157,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
     
     @Override
     public void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException {
+        Logger.registrar(INFO, new String[]{"COMUNICADOR_UDP"}, "Iniciando comunicador.");
         if(this.PORTA_ESCUTA < 1) {
             this.socket = new DatagramSocket();
         } else {
@@ -166,8 +169,10 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
         this.portaServidor = portaServidor;
         this.prepararThreadsDeComunicacao();
         if(super.MODO == Modo.CLIENTE) {
+            Logger.registrar(INFO, new String[]{"COMUNICADOR_UDP"}, "Iniciando thread de recepcao 1");
             this.threadReceptor.start();
         } else {
+            Logger.registrar(INFO, new String[]{"COMUNICADOR_UDP"}, "Iniciando thread de envio 2");
             this.threadEnviador.start();
         }
     }
@@ -185,13 +190,8 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
     @Override
     public void close() throws IOException {
         this.socket.close();
-        
-        if(this.threadReceptor.isAlive()) {
-            this.threadReceptor.interrupt();
-        }
-        if(this.threadEnviador.isAlive()) {
-            this.threadEnviador.interrupt();
-        }
+        this.threadReceptor.interrupt();
+        this.threadEnviador.interrupt();
     }
     
     private void prepararThreadsDeComunicacao() throws IOException {

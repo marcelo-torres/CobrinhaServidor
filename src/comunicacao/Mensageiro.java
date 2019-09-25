@@ -1,9 +1,12 @@
 package comunicacao;
 
+import Logger.Logger;
+import static Logger.Logger.Tipo.ERRO;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class Mensageiro implements Closeable {
     
@@ -113,24 +116,26 @@ public class Mensageiro implements Closeable {
     
     @Override
     public void close() {
+        this.COMUNICADOR_UDP.encerrarComunicacao();
         try {
-            this.COMUNICADOR_TCP.encerrarConexao();
-            this.COMUNICADOR_UDP.encerrarComunicacao();
-            try {
-            new Thread().sleep(1000);
-            } catch(Exception e) {}
-
-            this.COMUNICADOR_TCP.close();
             this.COMUNICADOR_UDP.close();
+        } catch(SocketException sk) {
+            Logger.registrar(ERRO, "Erro durante o fechamento do comunicador UDP: " + sk.getMessage(), sk);
         } catch(IOException ioe) {
-            this.COMUNICADOR_TCP.close();
-            //ioe.printStackTrace();
+            Logger.registrar(ERRO, "Erro durante o fechamento do comunicador UDP: " + ioe.getMessage(), ioe);
+        }
+        
+        this.COMUNICADOR_TCP.encerrarConexao();
+        try {
+             this.COMUNICADOR_TCP.close();
+        } catch(SocketException sk) {
+            System.out.println("[LOG][ERRO] - Erro durante o fechamento do comunicador TCP: " + sk.getMessage());
+        } catch(IOException ioe) {
+            System.out.println("[LOG][ERRO] - Erro durante o fechamento do comunicador TCP" + ioe.getMessage());
         }
         
         this.entregador.parar();
-        if(this.threadDeEntrega.isAlive()) {
-            this.threadDeEntrega.interrupt();
-        }
+        this.threadDeEntrega.interrupt();
     }
     
     
