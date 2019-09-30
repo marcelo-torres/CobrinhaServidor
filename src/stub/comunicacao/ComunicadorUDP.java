@@ -1,4 +1,4 @@
-    package comunicacao;
+package stub.comunicacao;
 
 import Logger.Logger;
 import static Logger.Logger.Tipo.INFO;
@@ -11,26 +11,30 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 
+/**
+ * Gerencia uma comunicacao TCP entre o cliente e o servidor. O envio e o
+ * recebimento sao divididos entre duas threads diferentes.
+ */
 public class ComunicadorUDP extends Comunicador implements Closeable {
     
     /**
      * Responsavel pelo recebimento de mensagens. Quando uma mensagem eh
-     * recebida encaminha para o ReceptorDeMensagem associado.
+     * recebida eh inserida na fila de recebimento.
      */
-    private static class Receptor extends ThreadEscrava implements Runnable { 
+    private static class Receptor extends ThreadEscrava { 
     
         private final DatagramSocket SOCKET;
         private final int TAMANHO_DA_MENSAGEM;
-        private final FilaMonitorada<byte[]> FILA_RECEBIMENTO_MENSAGEM;
+        private final Mensageiro MENSAGEIRO;
         
         public Receptor(DatagramSocket socket,
                 int tamanhoDaMensagem, 
-                FilaMonitorada<byte[]> filaDeRecebimentoDeMensagens) 
+                Mensageiro mensageiro) 
                 throws IOException {
             
             this.SOCKET = socket;
             this.TAMANHO_DA_MENSAGEM = tamanhoDaMensagem;
-            this.FILA_RECEBIMENTO_MENSAGEM = filaDeRecebimentoDeMensagens;
+            this.MENSAGEIRO = mensageiro;
         }
         
         @Override
@@ -56,14 +60,14 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                     if(this.emExecucao()) {
                         byte[] dados = pacote.getData();
                         if(dados != null) {
-                            this.FILA_RECEBIMENTO_MENSAGEM.adicionar(dados);
+                            this.MENSAGEIRO.inserirFilaRecebimento(dados);
                         }
                     }
                 } catch(EOFException eofe) { 
-                    throw new FalhaDeComunicacaoEmTempoRealException("Conexão fechada: " + eofe.getMessage());
+                    throw new FalhaDeComunicacaoEmTempoRealException("Conexao fechada: " + eofe.getMessage());
                 } catch(IOException ioe) {
                     ioe.printStackTrace();
-                    throw new FalhaDeComunicacaoEmTempoRealException("Não foi possível receber a mensagem: " + ioe.getMessage());
+                    throw new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel receber a mensagem: " + ioe.getMessage());
                 }
             }
         }
@@ -71,35 +75,33 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
     
     
     /**
-     * Faz o envio da mensagem para o destino. O metodo run() executa enquanto
-     * houverem mensagens na fila aguardando para serem enviadas. Tambem eh
-     * possivel que o metodo run() seja interrompido pelos metodo
-     * pararExecucao() ou close().
+     * Faz o envio da mensagem para o destino, retirando as mensagens da fila
+     * acessada atraves de um objeto da classe Mensageiro.
      */
     private static class Enviador extends ThreadEscrava implements Runnable {
         
         private final DatagramSocket SOCKET;
         private final InetAddress ENDERECO_SERVIDOR;
         private final int PORTA_SERVIDOR;
-        private final FilaMonitorada<byte[]> FILA_ENVIO_MENSAGENS;
+        private final Mensageiro MENSAGEIRO;
         
         public Enviador(DatagramSocket socket,
                 InetAddress enderecoServidor,
                 int porta, 
-                FilaMonitorada<byte[]> filaDeEnvioDeMensagens) 
+                Mensageiro mensageiro) 
                 throws IOException {
             
             this.SOCKET = socket;
             this.ENDERECO_SERVIDOR = enderecoServidor;
             this.PORTA_SERVIDOR = porta;
-            this.FILA_ENVIO_MENSAGENS = filaDeEnvioDeMensagens;
+            this.MENSAGEIRO = mensageiro;
         }
         
         @Override
         public void run() {
             super.executar();
             while(super.emExecucao()) {    
-                byte[] mensagem = this.FILA_ENVIO_MENSAGENS.remover();
+                byte[] mensagem = this.MENSAGEIRO.removerFilaEnvioUDP();
                 if(mensagem != null) {
                     try {
                         DatagramPacket pacote = new DatagramPacket(
@@ -110,7 +112,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                                                     
                         this.SOCKET.send(pacote);
                     } catch(IOException ioe) {
-                        throw new FalhaDeComunicacaoEmTempoRealException("Não foi possível enviar a mensagem: " + ioe.getMessage());
+                        throw new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel enviar a mensagem: " + ioe.getMessage());
                     }
                 }
             }
@@ -132,27 +134,31 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
     private UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
     
     private final int TAMANHO_DA_MENSAGEM;
-    private final int TEMPO_LIMITE_ESCUTA = 100;
+    private final int TEMPO_LIMITE_ESCUTA = 100; //ms
     
     public ComunicadorUDP(Modo modo,
-            FilaMonitorada<byte[]> filaDeEnvioDeMensagens,
-            FilaMonitorada<byte[]> filaDeRecebimentoDeMensagens,
+            Mensageiro mensageiro,
             UncaughtExceptionHandler gerenciadorDeException,
             int tamanhoDaMensagem,
             int PORTA_ESCUTA) {
         
-        super(modo, filaDeEnvioDeMensagens, filaDeRecebimentoDeMensagens);
+        super(modo, mensageiro);
         
-        if(gerenciadorDeException == null) {
-            throw new IllegalArgumentException("O gerenciador de exception não pode ser nulo");
-        }
+        this.validarArgumentos(gerenciadorDeException, tamanhoDaMensagem);
         this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
-        
-        if(tamanhoDaMensagem < 0) {
-            throw new IllegalArgumentException("O tamanho da mensagem não pode ser menor do que 1");
-        }
         this.TAMANHO_DA_MENSAGEM = tamanhoDaMensagem;
         this.PORTA_ESCUTA = PORTA_ESCUTA;
+    }
+    
+    private void validarArgumentos(
+            UncaughtExceptionHandler gerenciadorDeException,
+            int tamanhoDaMensagem) {
+        if(gerenciadorDeException == null) {
+            throw new IllegalArgumentException("O gerenciador de exception nao pode ser nulo");
+        }
+        if(tamanhoDaMensagem < 0) {
+            throw new IllegalArgumentException("O tamanho da mensagem nao pode ser menor do que 1");
+        }
     }
     
     @Override
@@ -176,11 +182,6 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
             this.threadEnviador.start();
         }
     }
-    
-    @Override
-    public synchronized void enviarMensagem(byte[] mensagem) {
-        super.FILA_ENVIO_MENSAGENS.adicionar(mensagem);
-    }
 
     public void encerrarComunicacao() {
         this.receptor.pararExecucao();
@@ -200,17 +201,17 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                     this.socket, 
                     this.enderecoServidor, 
                     this.portaServidor, 
-                    super.FILA_ENVIO_MENSAGENS);
+                    super.MENSAGEIRO);
             
             this.receptor = new Receptor(
                     this.socket, 
                     this.TAMANHO_DA_MENSAGEM, 
-                    super.FILA_RECEBIMENTO_MENSAGENS);
+                    super.MENSAGEIRO);
                 
             this.criarThreadReceptor();
             this.criarThreadEnviador();
         } catch(IOException ioe) {
-            throw new IOException("Não é possível criar as threads de comunicação: " + ioe.getMessage());
+            throw new IOException("Nao eh possivel criar as threads de comunicacao: " + ioe.getMessage());
         }
     }
     

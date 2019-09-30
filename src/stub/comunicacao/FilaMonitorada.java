@@ -1,5 +1,6 @@
-package comunicacao;
+package stub.comunicacao;
 
+import comunicacao.*;
 import java.util.LinkedList;
 import java.util.concurrent.*;
 

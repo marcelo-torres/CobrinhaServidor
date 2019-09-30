@@ -1,4 +1,4 @@
-package comunicacao;
+package stub.comunicacao;
 
 /**
  * Uma IOException ocorreu duarante a comunicacao.

@@ -1,11 +1,6 @@
 package Sessao;
 
-import comunicacao.Comunicador;
-import comunicacao.Comunicador.Modo;
-import comunicacao.ComunicadorTCP;
-import comunicacao.ComunicadorUDP;
-import comunicacao.Interpretador;
-import comunicacao.Mensageiro;
+import stub.InterpretadorServidor;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -17,8 +12,7 @@ import java.net.UnknownHostException;
  */
 public class Sessao implements Runnable {
 
-    private final Mensageiro MENSAGEIRO;
-    private final Interpretador INTERPRETADOR;
+    private final InterpretadorServidor INTERPRETADOR;
     
     private Socket socketDoCliente;
     
@@ -31,14 +25,14 @@ public class Sessao implements Runnable {
     
     public Sessao(Socket socketDoCliente) {
         this.socketDoCliente = socketDoCliente;
-        this.INTERPRETADOR = new Interpretador();
+        
         
         int portaEscutarUDP = -1;
         InetAddress enderecoCliente = obterEnderecoDoCliente();
         int portaTCPServidor = 0;
         int portaUDPServidor = 1235; // eh preciso receber do cliente
         
-        this.MENSAGEIRO = new Mensageiro(this.INTERPRETADOR, portaEscutarUDP, enderecoCliente, portaTCPServidor, portaUDPServidor);
+        this.INTERPRETADOR = new InterpretadorServidor(portaEscutarUDP, enderecoCliente, portaTCPServidor, portaUDPServidor);
     }
     
     @Override
@@ -49,10 +43,10 @@ public class Sessao implements Runnable {
         
         
         try {
-            this.MENSAGEIRO.iniciarTCP(socketDoCliente);
+            this.INTERPRETADOR.iniciar(socketDoCliente);
             //this.COMUNICADOR_TCP.iniciar(socketDoCliente);
             //this.COMUNICADOR_UDP.iniciar(enderecoCliente, portaDeEscutaDoCliente);
-        } catch(IOException ioe) {
+        } catch(Exception ioe) {
             System.out.println("[Sessao] Erro ao iniciar o comunicador: ");
             ioe.printStackTrace();
         }
@@ -121,7 +115,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagens) {
             pausar(100);
-            this.MENSAGEIRO.enviarMensagemTCP(mensagem.getBytes());
+            this.INTERPRETADOR.enviarMensagemTCPLembrarDeApagarEsteMetodo(mensagem.getBytes());
         }
     }
     
@@ -134,7 +128,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagens) {
             pausar(300);
-            this.MENSAGEIRO.enviarMensagemTCP(mensagem.getBytes());
+            this.INTERPRETADOR.enviarMensagemTCPLembrarDeApagarEsteMetodo(mensagem.getBytes());
         }
     }
     
@@ -151,7 +145,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagensUDP) {
             pausar(100);
-            this.MENSAGEIRO.enviarMensagemUDP(mensagem.getBytes());
+            this.INTERPRETADOR.enviarMensagemUDPLembrarDeApagarEsteMetodo(mensagem.getBytes());
         }
     }
 }

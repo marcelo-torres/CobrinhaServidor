@@ -1,27 +1,28 @@
-package comunicacao;
+package stub.comunicacao;
 
+import stub.InterpretadorServidor;
 import Logger.Logger;
 import static Logger.Logger.Tipo.ERRO;
+import static Logger.Logger.Tipo.INFO;
+import stub.comunicacao.Comunicador.Modo;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class Mensageiro implements Closeable {
     
     public static class Entregador implements Runnable {
         
-        protected final ReceptorDeMensagem DESTINATARIO;
-        protected final FilaMonitorada<byte[]> FILA_RECEBIMENTO;
+        protected final InterpretadorServidor INTERPRETADOR;
+        protected final Mensageiro MENSAGEIRO;
         
         protected boolean emEexecucao = false;
         
-        public Entregador(ReceptorDeMensagem destinatario,
-                FilaMonitorada<byte[]> filaDeRecebimentoDeMensagens) {
+        public Entregador(InterpretadorServidor interpretador, Mensageiro mensageiro) {
         
-            this.DESTINATARIO = destinatario;
-            this.FILA_RECEBIMENTO = filaDeRecebimentoDeMensagens;
+            this.INTERPRETADOR = interpretador;
+            this.MENSAGEIRO = mensageiro;
         }
         
         
@@ -29,9 +30,9 @@ public class Mensageiro implements Closeable {
         public void run() {
             this.emEexecucao = true;
             while(this.emExecucao()) {
-                byte[] mensagem = this.FILA_RECEBIMENTO.remover();
+                byte[] mensagem = this.MENSAGEIRO.removerFilaRecebimento();
                 if(mensagem != null) {
-                    this.DESTINATARIO.receberMensagem(mensagem);
+                    this.INTERPRETADOR.receberMensagem(mensagem);
                 }
             }
         }
@@ -42,12 +43,14 @@ public class Mensageiro implements Closeable {
         }
         
         public synchronized void parar() {
-            this.FILA_RECEBIMENTO.fechar();
+            this.MENSAGEIRO.fecharFilaRecebimento();
             this.emEexecucao = false;
         }
     }
     
-    private final Interpretador INTERPRETADOR;
+    
+    
+    private final InterpretadorServidor INTERPRETADOR;
     private final ComunicadorTCP COMUNICADOR_TCP;
     private final ComunicadorUDP COMUNICADOR_UDP;
     
@@ -68,7 +71,8 @@ public class Mensageiro implements Closeable {
     private Thread threadDeEntrega;
     
     public Mensageiro(
-            Interpretador interpretador,
+            InterpretadorServidor interpretador,
+            Modo modo,
             int portaEscutarUDP,
             InetAddress enderecoDoServidor,
             int portaTCPDoServidor,
@@ -85,15 +89,13 @@ public class Mensageiro implements Closeable {
         this.FILA_ENVIO_MENSAGENS_UDP = new FilaMonitorada<>(this.TAMANHO_FILA_ENVIO_UDP);
         
         this.COMUNICADOR_TCP = new ComunicadorTCP(
-                Comunicador.Modo.CLIENTE,
-                this.FILA_ENVIO_MENSAGENS_TCP,
-                this.FILA_RECEBIMENTO_MENSAGENS,
+                modo,
+                this,
                 this.gerenciadorDeException);
         
         this.COMUNICADOR_UDP = new ComunicadorUDP(
-                Comunicador.Modo.CLIENTE,
-                this.FILA_ENVIO_MENSAGENS_UDP,
-                this.FILA_RECEBIMENTO_MENSAGENS,
+                modo,
+                this,
                 this.gerenciadorDeException,
                 this.TAMANHO_MENSAGEM_UDP,
                 portaEscutarUDP);
@@ -116,39 +118,69 @@ public class Mensageiro implements Closeable {
     
     @Override
     public void close() {
-        this.COMUNICADOR_UDP.encerrarComunicacao();
         try {
+            this.COMUNICADOR_TCP.encerrarConexao();
+            this.COMUNICADOR_UDP.encerrarComunicacao();
+            try {
+            new Thread().sleep(1000);
+            } catch(Exception e) {}
+
+            this.COMUNICADOR_TCP.close();
             this.COMUNICADOR_UDP.close();
-        } catch(SocketException sk) {
-            Logger.registrar(ERRO, "Erro durante o fechamento do comunicador UDP: " + sk.getMessage(), sk);
         } catch(IOException ioe) {
-            Logger.registrar(ERRO, "Erro durante o fechamento do comunicador UDP: " + ioe.getMessage(), ioe);
-        }
-        
-        this.COMUNICADOR_TCP.encerrarConexao();
-        try {
-             this.COMUNICADOR_TCP.close();
-        } catch(SocketException sk) {
-            System.out.println("[LOG][ERRO] - Erro durante o fechamento do comunicador TCP: " + sk.getMessage());
-        } catch(IOException ioe) {
-            System.out.println("[LOG][ERRO] - Erro durante o fechamento do comunicador TCP" + ioe.getMessage());
+            Logger.registrar(ERRO, new String[]{"MENSAGEIRO"}, "Erro ao fechar", ioe);
         }
         
         this.entregador.parar();
-        this.threadDeEntrega.interrupt();
+        if(this.threadDeEntrega.isAlive()) {
+            this.threadDeEntrega.interrupt();
+        }
     }
     
     
-    public void enviarMensagemTCP(byte[] mensagem) {
-        this.COMUNICADOR_TCP.enviarMensagem(mensagem);
+    
+    public void inserirFilaRecebimento(byte[] mensagem) {
+        this.FILA_RECEBIMENTO_MENSAGENS.adicionar(mensagem);
+    }
+
+    public byte[] removerFilaRecebimento() {
+        return this.FILA_RECEBIMENTO_MENSAGENS.remover();
     }
     
-    public void enviarMensagemUDP(byte[] mensagem) {
-        this.COMUNICADOR_UDP.enviarMensagem(mensagem);
+    public void fecharFilaRecebimento() {
+        this.FILA_RECEBIMENTO_MENSAGENS.fechar();
     }
+
+
+    public void inserirFilaEnvioTCP(byte[] mensagem) {
+        this.FILA_ENVIO_MENSAGENS_TCP.adicionar(mensagem);
+    }
+
+    public byte[] removerFilaEnvioTCP() {
+        return this.FILA_ENVIO_MENSAGENS_TCP.remover();
+    }
+    
+    public void fecharFilaEnvioTCP() {
+        this.FILA_ENVIO_MENSAGENS_TCP.fechar();
+    }
+
+
+    public void inserirFilaEnvioUDP(byte[] mensagem) {
+        this.FILA_ENVIO_MENSAGENS_UDP.adicionar(mensagem);
+    }
+
+    public byte[] removerFilaEnvioUDP() {
+        return this.FILA_ENVIO_MENSAGENS_UDP.remover();
+    }
+    
+    public void fecharFilaEnvioUDP() {
+        this.FILA_ENVIO_MENSAGENS_UDP.fechar();
+    }
+    
+    
     
     private void prepararThreadDeEntrega() {
-        this.entregador = new Entregador(this.INTERPRETADOR, this.FILA_RECEBIMENTO_MENSAGENS);
+        this.entregador = new Entregador(this.INTERPRETADOR, this);
         this.threadDeEntrega = new Thread(this.entregador);
         this.threadDeEntrega.setName("Entrega_Mensagem");
     }

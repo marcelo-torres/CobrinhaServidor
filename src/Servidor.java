@@ -1,5 +1,3 @@
-
-import comunicacao.FalhaDeComunicacaoEmTempoRealException;
 import comunicacao.Listener;
 
 public class Servidor implements Runnable {

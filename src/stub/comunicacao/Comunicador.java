@@ -1,4 +1,4 @@
-package comunicacao;
+package stub.comunicacao;
 
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -9,6 +9,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Fornece variaveis e metodos basicos para o funcionamento de um comunicador,
+ * cuja funcao eh gerenciar o envio e recebimento concorrentes de mensagens.
+ */
 public abstract class Comunicador {
     
     protected static class TarefaValidarConexao extends TimerTask {
@@ -27,7 +31,7 @@ public abstract class Comunicador {
         public void run() {
             if(!this.CONTROLADOR.podeReiniciar()) {
                 FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Conexao perdida (KeepAlive)");
-                //this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
+                this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
             }
         }
     }
@@ -88,7 +92,11 @@ public abstract class Comunicador {
         }
     }
     
-    protected static class ThreadEscrava {
+    /**
+     * Fornce metodos para gerenciar o estado de execucao de um thread de envio
+     * ou recebimento.
+     */
+    protected abstract static class ThreadEscrava implements Runnable {
         
         private boolean executando = false;
         
@@ -105,6 +113,9 @@ public abstract class Comunicador {
         }
     }
     
+    /**
+     * Modo de execucao de um comunicador.
+     */
     public enum Modo {
         SERVIDOR(1), CLIENTE(2);
         
@@ -137,25 +148,12 @@ public abstract class Comunicador {
     }
 
     protected final Modo MODO;
-    protected final FilaMonitorada<byte[]> FILA_ENVIO_MENSAGENS;
-    protected final FilaMonitorada<byte[]> FILA_RECEBIMENTO_MENSAGENS;
+    protected final Mensageiro MENSAGEIRO;
     
-    public Comunicador(Modo modo,
-            FilaMonitorada<byte[]> filaDeEnvioDeMensagens,
-            FilaMonitorada<byte[]> filaDeRecebimentoDeMensagens) {
-        
-        if(modo == null
-                || filaDeEnvioDeMensagens == null
-                || filaDeRecebimentoDeMensagens == null) {
-            throw new IllegalArgumentException("Não é possível criar o comunicador, parâmetro nulo");
-        }
-        
+    public Comunicador(Modo modo, Mensageiro mensageiro) {
         this.MODO = modo;
-        this.FILA_ENVIO_MENSAGENS = filaDeEnvioDeMensagens;
-        this.FILA_RECEBIMENTO_MENSAGENS = filaDeRecebimentoDeMensagens;
+        this.MENSAGEIRO = mensageiro;
     }
     
     public abstract void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException;
-    
-    public abstract void enviarMensagem(byte[] mensagem);
 }
