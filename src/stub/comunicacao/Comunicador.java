@@ -52,6 +52,9 @@ public abstract class Comunicador {
         }
     }
     
+    /**
+     * Mensagem usada para a comunicacao entre os comunicadores
+     */
     protected static class MensagemComunicador implements Serializable {
         
         private final TipoMensagem TIPO_MENSAGEM;
@@ -92,15 +95,19 @@ public abstract class Comunicador {
         }
     }
     
-    protected static class EnviadorTCP implements Closeable {
+    /**
+     * Pacote que permite o acesso de somente uma unica thread ao metodo de 
+     * escrita e fechamento de um ObjectOutputStream.
+     */
+    protected static class SynchronizedObjectOutputStreamWrapper implements Closeable {
     
         ObjectOutputStream SAIDA;
         
-        public EnviadorTCP(ObjectOutputStream saida) {
+        public SynchronizedObjectOutputStreamWrapper(ObjectOutputStream saida) {
             this.SAIDA = saida;
         }
         
-        public synchronized void enviar(Object objeto) throws IOException {
+        public synchronized void writeAndFlush(Object objeto) throws IOException {
             this.SAIDA.writeObject(objeto);
             this.SAIDA.flush();
         }
@@ -111,15 +118,19 @@ public abstract class Comunicador {
         }
     }
     
+    /**
+     * Tarefa que realiza o trabalho de enviar uma unica mensagem do tipo
+     * keep alive.
+     */
     protected static class TarefaEnviarKeepAlive extends TimerTask {
     
         private final UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
-        private final EnviadorTCP ENVIADOR_TCP;
-        
+        private final SynchronizedObjectOutputStreamWrapper WRAPPED_OUTPUT;
+;        
         public TarefaEnviarKeepAlive(
-                EnviadorTCP enviadorTCP,
+                SynchronizedObjectOutputStreamWrapper wrappedOutput,
                 UncaughtExceptionHandler gerenciadorDeException) {
-            this.ENVIADOR_TCP = enviadorTCP;
+            this.WRAPPED_OUTPUT = wrappedOutput;
             this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
         }
         
@@ -127,7 +138,7 @@ public abstract class Comunicador {
         public void run() {
             try {
                 MensagemComunicador mensagemKeepAlive = new MensagemComunicador(TipoMensagem.KEEP_ALIVE, null);
-                this.ENVIADOR_TCP.enviar(mensagemKeepAlive);
+                this.WRAPPED_OUTPUT.writeAndFlush(mensagemKeepAlive);
             } catch(IOException ioe) {
                 FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel mandar a mensagem de keep alive: " + ioe.getMessage(), ioe);
                 this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
@@ -137,10 +148,14 @@ public abstract class Comunicador {
         }
     }
     
+    /**
+     * Responsavel por escalonar a tarefa de envio do keep alive atraves de um 
+     * ScheduledExecutorService.
+     */
     protected static class EnviadorKeepAlive {
     
         private final UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
-        private final EnviadorTCP ENVIADOR_TCP;
+        private final SynchronizedObjectOutputStreamWrapper WRAPPED_OUTPUT;
         private final int INTERVALO_ENVIO;
         
         private ScheduledExecutorService scheduler;
@@ -148,14 +163,14 @@ public abstract class Comunicador {
         
         public EnviadorKeepAlive(
             UncaughtExceptionHandler gerenciadorDeException,
-            EnviadorTCP enviadorTCP,
+            SynchronizedObjectOutputStreamWrapper wrappedOutput,
             int quantidadeDeMensagens,
             int intervaloDeTempo) {
         
-            this.validarParametros(gerenciadorDeException, enviadorTCP, quantidadeDeMensagens, intervaloDeTempo);
+            this.validarParametros(gerenciadorDeException, wrappedOutput, quantidadeDeMensagens, intervaloDeTempo);
             
             this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
-            this.ENVIADOR_TCP = enviadorTCP;
+            this.WRAPPED_OUTPUT = wrappedOutput;
             this.INTERVALO_ENVIO = (intervaloDeTempo / quantidadeDeMensagens);
             
             this.scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -168,7 +183,7 @@ public abstract class Comunicador {
             
             long delayInicial = 0;
             this.tarefasRestantes = this.scheduler.scheduleAtFixedRate(
-                    new TarefaEnviarKeepAlive(this.ENVIADOR_TCP, GERENCIADOR_DE_EXCEPTION),
+                    new TarefaEnviarKeepAlive(this.WRAPPED_OUTPUT, GERENCIADOR_DE_EXCEPTION),
                     delayInicial,
                     this.INTERVALO_ENVIO,
                     TimeUnit.MILLISECONDS);
@@ -181,7 +196,7 @@ public abstract class Comunicador {
         
         private void validarParametros(
             UncaughtExceptionHandler gerenciadorDeException,
-            EnviadorTCP enviadorTCP,
+            SynchronizedObjectOutputStreamWrapper enviadorTCP,
             int quantidadeDeMensagens,
             int intervaloDeTempo) {
         
@@ -203,6 +218,11 @@ public abstract class Comunicador {
         }
     }
     
+    /**
+     * Entidade escalonavel utilizada para verificar se a conexao ainda esta
+     * estabelecida apos um certo tempo. As regras que definem que uma conexao
+     * ainda esta vida nao sao definidas nesta classe.
+     */
     protected static class TarefaValidarConexao extends TimerTask {
 
         private UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
@@ -218,12 +238,17 @@ public abstract class Comunicador {
         @Override
         public void run() {
             if(!this.CONTROLADOR.podeReiniciar()) {
-                FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Conexao perdida (KeepAlive)");
+                FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Conexao perdida - KeepAlive");
                 this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
             }
         }
     }
     
+    /**
+     * Implementa as regras para verificar se uma conexao ainda esta viva e 
+     * escalona um objeto da classe TarefaValidarConexao atraves de um 
+     * ScheduledExecutorService.
+     */
     protected static class ControladorKeepAlive {
         
         private UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
@@ -289,5 +314,12 @@ public abstract class Comunicador {
         this.MENSAGEIRO = mensageiro;
     }
     
+    /**
+     * Realiza as tarefas necessarias para viabilizar a conexao.
+     * 
+     * @param enderecoServidor Endereco do servidor
+     * @param portaServidor Porta do servidor
+     * @throws IOException 
+     */
     public abstract void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException;
 }

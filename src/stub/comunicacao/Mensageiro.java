@@ -18,11 +18,13 @@ import java.net.Socket;
  * 
  * As filas de armazenamento para enviar mensagens via TCP e UDP sao separadas. 
  * Cabe a aplicacao que sua esta classe decidir em qual fila inserir a mensagem.
- * 
- * @author marcelo
  */
 public class Mensageiro implements Closeable {
     
+    /**
+     * Possui como funcao retirar mensagens da fila de recebimento e entregar
+     * ao Destinatario.
+     */
     public static class Entregador implements Runnable {
         
         protected final Destinatario INTERPRETADOR;
@@ -61,7 +63,7 @@ public class Mensageiro implements Closeable {
     
     
     
-    private final Destinatario INTERPRETADOR;
+    private final Destinatario DESTINATARIO;
     private final ComunicadorTCP COMUNICADOR_TCP;
     private final ComunicadorUDP COMUNICADOR_UDP;
     
@@ -81,8 +83,19 @@ public class Mensageiro implements Closeable {
     private Entregador entregador;
     private Thread threadDeEntrega;
     
+    /**
+     * Cria as filas de mensagem e os comunicadores.
+     * 
+     * @param destinatario Destinatario da mensagem
+     * @param modo Modo de execucao dos comunicadores
+     * @param portaEscutarUDP Porta para escutar UDP na maquina em questao
+     * @param enderecoDoServidor Endereco do servidor com ambos os sockets
+     * @param portaTCPDoServidor Porta de escuta TCP no servidor
+     * @param portaUDPDoServidor Porta de escuta UDP no servidor
+     * @param gerenciadorDeException Handler de exception lancadas em threads
+     */
     public Mensageiro(
-            Destinatario interpretador,
+            Destinatario destinatario,
             Modo modo,
             int portaEscutarUDP,
             InetAddress enderecoDoServidor,
@@ -90,7 +103,7 @@ public class Mensageiro implements Closeable {
             int portaUDPDoServidor,
             Thread.UncaughtExceptionHandler gerenciadorDeException) {
     
-        this.INTERPRETADOR = interpretador;
+        this.DESTINATARIO = destinatario;
         
         this.ENDERECO_SERVIDOR = enderecoDoServidor;
         this.PORTA_TCP_SERVIDOR = portaTCPDoServidor;
@@ -113,28 +126,53 @@ public class Mensageiro implements Closeable {
                 portaEscutarUDP);
     }
     
+    /**
+     * Inicia uma conexao TCP com host de endereco e porta definidos no 
+     * construtor, e inicia a thread de entrega de mensagens ao destinatario.
+     * 
+     * @throws IOException Erro ao iniciar a conexao.
+     */
     public void iniciarTCP() throws IOException {
         this.COMUNICADOR_TCP.iniciar(this.ENDERECO_SERVIDOR, this.PORTA_TCP_SERVIDOR);
         this.iniciarServicoEntrega();
     }
     
+    /**
+     * Mantem uma conexao estabelecida com o socket passado por parametro e
+     * inicia a thread de entrega de mensagens ao destinatario.
+     * 
+     * @param socket Socket com a conexao
+     * @throws IOException Erro ao iniciar a conexao.
+     */
     public void iniciarTCP(Socket socket) throws IOException {
         this.COMUNICADOR_TCP.iniciar(socket);
         this.iniciarServicoEntrega();
     }
     
-    public void encerrarTCP() throws IOException {
+    /**
+     * Encerra a conexao TCP e fecha o comunicador TCP.
+     */
+    public void encerrarTCP() {
         this.COMUNICADOR_TCP.encerrarConexao();
         this.COMUNICADOR_TCP.close();
     }
     
     
+    /**
+     * Configura um comunicador UDP com host de endereco e porta definidos no 
+     * construtor, e inicia a thread de entrega de mensagens ao destinatario.
+     * 
+     * @throws IOException Erro ao configurar o socket
+     */
     public void iniciarUDP() throws IOException {
         this.COMUNICADOR_UDP.iniciar(this.ENDERECO_SERVIDOR, this.PORTA_UDP_SERVIDOR);
         this.iniciarServicoEntrega();
     }
     
-    public void encerrarUDP() throws IOException {
+    /**
+     * Encerra a conexao TCP e fecha o comunicador TCP.
+     */
+    public void encerrarUDP() {
         this.COMUNICADOR_UDP.encerrarComunicacao();
         this.COMUNICADOR_UDP.close();
     }
@@ -143,13 +181,8 @@ public class Mensageiro implements Closeable {
     
     @Override
     public void close() {
-        try {
-            this.encerrarTCP();
-            this.encerrarUDP();
-        } catch(IOException ioe) {
-            Logger.registrar(ERRO, new String[]{"MENSAGEIRO"}, "Erro ao fechar", ioe);
-        }
-        
+        this.encerrarTCP();
+        this.encerrarUDP();
         this.entregador.parar();
         if(this.threadDeEntrega.isAlive()) {
             this.threadDeEntrega.interrupt();
@@ -207,7 +240,7 @@ public class Mensageiro implements Closeable {
     
     
     private void prepararThreadDeEntrega() {
-        this.entregador = new Entregador(this.INTERPRETADOR, this);
+        this.entregador = new Entregador(this.DESTINATARIO, this);
         this.threadDeEntrega = new Thread(this.entregador);
         this.threadDeEntrega.setName("Entrega_Mensagem");
     }

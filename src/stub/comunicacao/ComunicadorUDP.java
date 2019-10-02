@@ -136,6 +136,15 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
     private final int TAMANHO_DA_MENSAGEM;
     private final int TEMPO_LIMITE_ESCUTA = 100; //ms
     
+    /**
+     * Constroi o objeto sem iniciar nenhum tipo de comportamento.
+     * 
+     * @param modo Modo de operacao
+     * @param mensageiro Mensageiro de onde as mensagens serao tiradas e entregues
+     * @param gerenciadorDeException Handler de exceptions lancadas a partir das threads
+     * @param tamanhoDaMensagem Tamanho em bytes da mensagem a ser enviada
+     * @param PORTA_ESCUTA Porta de escuta do socket
+     */
     public ComunicadorUDP(Modo modo,
             Mensageiro mensageiro,
             UncaughtExceptionHandler gerenciadorDeException,
@@ -161,6 +170,16 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
         }
     }
     
+    /**
+     * Configura o comunicador criando e configurando o socket, e criando as
+     * threads de comunicacao e executando-as.
+     * 
+     * @param enderecoServidor O endereco do servidor de destino das mensagens
+     * @param portaServidor A porta de recebimento das mensagens. Caso valor < 1
+     *                      a porta eh escolhida aleatoriamente pelo proprio
+     *                      construtor do socket
+     * @throws IOException Erro ao configurar o socket
+     */
     @Override
     public void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException {
         Logger.registrar(INFO, new String[]{"COMUNICADOR_UDP"}, "Iniciando comunicador.");
@@ -183,13 +202,20 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
         }
     }
 
+    /**
+     * Solicita que as threads de comunicacao parem. A solicitacao pode nao ser
+     * atendida na hora.
+     */
     public void encerrarComunicacao() {
         this.receptor.pararExecucao();
         this.enviador.pararExecucao();
     }
     
+    /**
+     * Fecha o socket a interrompe as threads
+     */
     @Override
-    public void close() throws IOException {
+    public void close() {
         this.socket.close();
         this.threadReceptor.interrupt();
         this.threadEnviador.interrupt();

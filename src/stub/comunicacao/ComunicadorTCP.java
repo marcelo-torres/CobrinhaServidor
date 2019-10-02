@@ -83,14 +83,14 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
      */
     private static class Enviador extends ThreadEscrava implements Closeable {
         
-        private final EnviadorTCP ENVIADOR_TCP;
+        private final SynchronizedObjectOutputStreamWrapper WRAPPED_OUTPUT;
         private final Mensageiro MENSAGEIRO;
         
         public Enviador(
-                EnviadorTCP enviadorTCP, 
+                SynchronizedObjectOutputStreamWrapper enviadorTCP, 
                 Mensageiro mensageiro) {
             
-            this.ENVIADOR_TCP = enviadorTCP;
+            this.WRAPPED_OUTPUT = enviadorTCP;
             this.MENSAGEIRO = mensageiro;
         }
         
@@ -102,7 +102,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                 if(mensagem != null) {
                     try {
                         MensagemComunicador envelope = new MensagemComunicador(TipoMensagem.MENSAGEM_COMUM, mensagem);
-                        this.ENVIADOR_TCP.enviar(envelope);
+                        this.WRAPPED_OUTPUT.writeAndFlush(envelope);
                     } catch(IOException ioe) {
                         throw new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel enviar a mensagem: " + ioe.getMessage());
                     }
@@ -113,7 +113,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         @Override
         public void close() throws IOException {
             if(super.emExecucao()) super.pararExecucao();
-            this.ENVIADOR_TCP.close();
+            this.WRAPPED_OUTPUT.close();
         }
     }
     
@@ -152,27 +152,42 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         }
     }
     
-    
+    /**
+     * Inicia o comunicador criando um socket, criando e iniciando as threads de
+     * comunicacao, criando um controlador de keep alive e criando um enviador
+     * de keep alive.
+     * 
+     * @param enderecoServidor Endereco do destinatario
+     * @param portaServidor Porta de escuta do destinatario
+     * @throws IOException Problema ao estabelecer a conexao
+     */
     @Override
     public void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException {
         Logger.registrar(INFO, new String[]{"COMUNICADOR_TCP"}, "Iniciando comunicador.");
         Socket socketNovo = this.abrirSocket(enderecoServidor, portaServidor);
         this.carregarSocket(socketNovo);
-        this.prepararThreadsDeComunicacao();
-        this.iniciarThreadDeComunicacao();
-        this.controladorKeepAlive.iniciar();
-        this.enviadorKeepAlive.iniciar();
+        this.iniciarServicosBasicos();
     }
     
+    /**
+     * Inicia o comunicador carregando o socket, criando e iniciando as threads 
+     * de comunicacao, criando um controlador de keep alive e criando um enviador
+     * de keep alive.
+     * 
+     * @param socketNovo Socket a ser usado na conexao
+     * @throws IOException Problema ao estabelecer a conexao
+     */
     public void iniciar(Socket socketNovo) throws IOException {
         Logger.registrar(INFO, new String[]{"COMUNICADOR_TCP"}, "Iniciando comunicador.");
         this.carregarSocket(socketNovo);
-        this.prepararThreadsDeComunicacao();
-        this.iniciarThreadDeComunicacao();
-        this.controladorKeepAlive.iniciar();
-        this.enviadorKeepAlive.iniciar();
+        this.iniciarServicosBasicos();
     }
-    
+
+    /**
+     * Solicita o encerremanto da execucao das threads de envio e recebimento, e
+     * encerra as tarefas de envio de keep alive e monitoramento do keep alive.
+     * O encerramento das threads pode nao ser imediato.
+     */
     public void encerrarConexao() {
         /*this.controladorKeepAlive.encerrar();
         try {
@@ -186,12 +201,16 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         }
         */
         this.enviador.pararExecucao();
+        this.receptor.pararExecucao();
         this.controladorKeepAlive.encerrar();
         this.enviadorKeepAlive.encerrar();
     }
     
+    /**
+     * Fecha a comunicacao de forma definitiva e interrompe as threads.
+     */
     @Override
-    public void close() throws IOException {
+    public void close() {
         try {
             this.enviador.close();
             this.receptor.close();
@@ -204,6 +223,13 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
             
         this.threadEnviador.interrupt();
         this.threadReceptor.interrupt();
+    }
+    
+    private void iniciarServicosBasicos() throws IOException {
+        this.prepararThreadsDeComunicacao();
+        this.iniciarThreadDeComunicacao();
+        this.controladorKeepAlive.iniciar();
+        this.enviadorKeepAlive.iniciar();
     }
     
     private Socket abrirSocket(InetAddress enderecoServidor, int portaServidor) throws IOException {
@@ -249,7 +275,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
             throw new IOException("Nao eh possivel estabelecer a comunicacao: " + ioe.getMessage());
         }
         
-        EnviadorTCP enviadorTCP = new EnviadorTCP(saida);
+        SynchronizedObjectOutputStreamWrapper enviadorTCP = new SynchronizedObjectOutputStreamWrapper(saida);
         
         this.enviadorKeepAlive = new EnviadorKeepAlive(this.GERENCIADOR_DE_EXCEPTION, enviadorTCP, this.ENVIO_QUANTIDADE_MENSAGENS_KEEP_ALIVE, this.ENVIO_TEMPO_MS_LIMITE_KEEP_ALIVE);
         this.controladorKeepAlive = new ControladorKeepAlive(this.GERENCIADOR_DE_EXCEPTION,this.RECEBIMENTO_TEMPO_MS_LIMITE_KEEP_ALIVE, this.RECEBIMENTO_QUANTIDADE_MENSAGENS_KEEP_ALIVE);
