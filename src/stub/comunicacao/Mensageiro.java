@@ -1,25 +1,36 @@
 package stub.comunicacao;
 
-import stub.InterpretadorServidor;
 import Logger.Logger;
 import static Logger.Logger.Tipo.ERRO;
-import static Logger.Logger.Tipo.INFO;
 import stub.comunicacao.Comunicador.Modo;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
+/**
+ * Gerencia suas filas monitoradas privadas que sao usadas como buffer de
+ * mensagens recebidas e para serem enviadas. Possui uma fila de recebimento 
+ * unica (ou seja, para TCP e UDP) no qual as mensagens a serem entregues
+ * para a aplicacao destinataria do sistema de entregas de mensagens por redes.
+ * As entregas sao realizadas por uma thread iniciada assim que alguma conexao
+ * for iniciar e so sera encerrada quando o metodo close() for chamado.
+ * 
+ * As filas de armazenamento para enviar mensagens via TCP e UDP sao separadas. 
+ * Cabe a aplicacao que sua esta classe decidir em qual fila inserir a mensagem.
+ * 
+ * @author marcelo
+ */
 public class Mensageiro implements Closeable {
     
     public static class Entregador implements Runnable {
         
-        protected final InterpretadorServidor INTERPRETADOR;
+        protected final Destinatario INTERPRETADOR;
         protected final Mensageiro MENSAGEIRO;
         
         protected boolean emEexecucao = false;
         
-        public Entregador(InterpretadorServidor interpretador, Mensageiro mensageiro) {
+        public Entregador(Destinatario interpretador, Mensageiro mensageiro) {
         
             this.INTERPRETADOR = interpretador;
             this.MENSAGEIRO = mensageiro;
@@ -50,7 +61,7 @@ public class Mensageiro implements Closeable {
     
     
     
-    private final InterpretadorServidor INTERPRETADOR;
+    private final Destinatario INTERPRETADOR;
     private final ComunicadorTCP COMUNICADOR_TCP;
     private final ComunicadorUDP COMUNICADOR_UDP;
     
@@ -71,12 +82,13 @@ public class Mensageiro implements Closeable {
     private Thread threadDeEntrega;
     
     public Mensageiro(
-            InterpretadorServidor interpretador,
+            Destinatario interpretador,
             Modo modo,
             int portaEscutarUDP,
             InetAddress enderecoDoServidor,
             int portaTCPDoServidor,
-            int portaUDPDoServidor) {
+            int portaUDPDoServidor,
+            Thread.UncaughtExceptionHandler gerenciadorDeException) {
     
         this.INTERPRETADOR = interpretador;
         
@@ -91,12 +103,12 @@ public class Mensageiro implements Closeable {
         this.COMUNICADOR_TCP = new ComunicadorTCP(
                 modo,
                 this,
-                this.gerenciadorDeException);
+                gerenciadorDeException);
         
         this.COMUNICADOR_UDP = new ComunicadorUDP(
                 modo,
                 this,
-                this.gerenciadorDeException,
+                gerenciadorDeException,
                 this.TAMANHO_MENSAGEM_UDP,
                 portaEscutarUDP);
     }
@@ -111,22 +123,29 @@ public class Mensageiro implements Closeable {
         this.iniciarServicoEntrega();
     }
     
+    public void encerrarTCP() throws IOException {
+        this.COMUNICADOR_TCP.encerrarConexao();
+        this.COMUNICADOR_TCP.close();
+    }
+    
+    
     public void iniciarUDP() throws IOException {
         this.COMUNICADOR_UDP.iniciar(this.ENDERECO_SERVIDOR, this.PORTA_UDP_SERVIDOR);
         this.iniciarServicoEntrega();
     }
     
+    public void encerrarUDP() throws IOException {
+        this.COMUNICADOR_UDP.encerrarComunicacao();
+        this.COMUNICADOR_UDP.close();
+    }
+    
+
+    
     @Override
     public void close() {
         try {
-            this.COMUNICADOR_TCP.encerrarConexao();
-            this.COMUNICADOR_UDP.encerrarComunicacao();
-            try {
-            new Thread().sleep(1000);
-            } catch(Exception e) {}
-
-            this.COMUNICADOR_TCP.close();
-            this.COMUNICADOR_UDP.close();
+            this.encerrarTCP();
+            this.encerrarUDP();
         } catch(IOException ioe) {
             Logger.registrar(ERRO, new String[]{"MENSAGEIRO"}, "Erro ao fechar", ioe);
         }
@@ -199,15 +218,4 @@ public class Mensageiro implements Closeable {
             this.threadDeEntrega.start();
         }
     }
-    
-    
-    private Mensageiro mensageiroAuxiliar = this;
-    private Thread.UncaughtExceptionHandler gerenciadorDeException = new Thread.UncaughtExceptionHandler() {
-        Mensageiro mensageiro = mensageiroAuxiliar;
-        public void uncaughtException(Thread th, Throwable ex) {
-            System.out.println("[LOG][ERRO] - Erro na conexão: " + ex.getMessage() + " [ENCERRANDO CONEXAO]");
-            mensageiro.close();
-        }
-    };
-    
 }

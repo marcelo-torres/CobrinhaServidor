@@ -1,17 +1,48 @@
 package stub;
 
 import Logger.Logger;
+import static Logger.Logger.Tipo.ERRO;
+import static Logger.Logger.Tipo.INFO;
 import stub.comunicacao.Comunicador;
 import stub.comunicacao.Mensageiro;
-import static Logger.Logger.Tipo.ERRO;
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.LinkedList;
+import stub.comunicacao.Destinatario;
 
-public class InterpretadorServidor implements Closeable {
+public class InterpretadorServidor extends Destinatario {
  
-    private final Mensageiro MENSAGEIRO;
+    /**
+     * Gerenciador de exceptions nao capturadas por metodos, isto eh, que
+     * ocorreram em outras threads.
+     */
+    public static class GerenciadorDeException implements Thread.UncaughtExceptionHandler {
+    
+        private final LinkedList<Destinatario> DESTINATARIOS = new LinkedList();
+        
+        public void setGerenciadorDeException(Destinatario destinatario) {
+            this.DESTINATARIOS.add(destinatario);
+        }
+        
+        @Override
+        public void uncaughtException(Thread th, Throwable ex) {
+            Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro na comunicacao: " + ex.getMessage());
+            Logger.registrar(INFO, new String[]{"INTERPRETADOR"}, "Encerrando devido a falha de comunicacao");
+            
+            for(Destinatario destinatario : this.DESTINATARIOS) {
+                try {
+                    destinatario.close();
+                } catch(IOException ioe) {
+                    Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro na comunicacao: " + ioe.getMessage());
+                    Logger.registrar(INFO, new String[]{"INTERPRETADOR"}, "Encerrando devido a falha de comunicacao");
+                }
+            }
+        }
+        
+    }
+    
+    private final static GerenciadorDeException GERENCIADOR_DE_EXCEPTION = new GerenciadorDeException();
     
     public InterpretadorServidor(
             int portaEscutarUDP,
@@ -19,18 +50,19 @@ public class InterpretadorServidor implements Closeable {
             int portaTCPDoServidor,
             int portaUDPDoServidor) {
         
-        this.MENSAGEIRO = new Mensageiro(
-                this,
+        super(
                 Comunicador.Modo.SERVIDOR,
                 portaEscutarUDP,
                 enderecoDoServidor,
                 portaTCPDoServidor,
-                portaUDPDoServidor);
+                portaUDPDoServidor,
+                GERENCIADOR_DE_EXCEPTION);
+        GERENCIADOR_DE_EXCEPTION.setGerenciadorDeException(this);
     }
     
     public void iniciar(Socket socket) throws Exception {
         try {
-            this.MENSAGEIRO.iniciarTCP(socket);
+            super.MENSAGEIRO.iniciarTCP(socket);
         } catch(IOException ioe) {
             Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro ao tentar iniciar a comunicacao.");
             throw new Exception("Nao foi possivel iniciar a comunicacao com o servidor");
@@ -39,7 +71,7 @@ public class InterpretadorServidor implements Closeable {
     
     @Override
     public void close() {
-        this.MENSAGEIRO.close();
+        super.MENSAGEIRO.close();
     }
     
     public void receberMensagem(byte[] mensagem) {
@@ -50,16 +82,16 @@ public class InterpretadorServidor implements Closeable {
     }
     
     public void enviarMensagemTCPLembrarDeApagarEsteMetodo(byte[] mensagem) {
-        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+        super.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
     
     public void enviarMensagemUDPLembrarDeApagarEsteMetodo(byte[] mensagem) {
-        this.MENSAGEIRO.inserirFilaEnvioUDP(mensagem);
+        super.MENSAGEIRO.inserirFilaEnvioUDP(mensagem);
     }
     
     public void algumMetodoQueVaiPrecisarUsarConexaoUDP() {
         try {
-            this.MENSAGEIRO.iniciarUDP();
+            super.MENSAGEIRO.iniciarUDP();
         } catch(IOException ioe) {
             // Transparencia total eh impossivel
             throw new RuntimeException("Nao foi possivel executar o metodo algumMetodoQueVaiPrecisarUsarConexaoUDP");
