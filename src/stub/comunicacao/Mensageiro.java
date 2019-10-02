@@ -155,6 +155,10 @@ public class Mensageiro implements Closeable {
     public void inserirFilaEnvioTCP(byte[] mensagem) {
         this.FILA_ENVIO_MENSAGENS_TCP.adicionar(mensagem);
     }
+    
+    public void inserirFilaEnvioTCPNaFrente(byte[] mensagem) {
+        this.FILA_ENVIO_MENSAGENS_TCP.colocarNoInicio(mensagem);
+    }
 
     public byte[] removerFilaEnvioTCP() {
         return this.FILA_ENVIO_MENSAGENS_TCP.remover();
@@ -167,6 +171,10 @@ public class Mensageiro implements Closeable {
 
     public void inserirFilaEnvioUDP(byte[] mensagem) {
         this.FILA_ENVIO_MENSAGENS_UDP.adicionar(mensagem);
+    }
+    
+    public void inserirFilaEnvioUDPNaFrente(byte[] mensagem) {
+        this.FILA_ENVIO_MENSAGENS_UDP.colocarNoInicio(mensagem);
     }
 
     public byte[] removerFilaEnvioUDP() {
