@@ -200,8 +200,29 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
             Logger.registrar(INFO, new String[]{"COMUNICADOR_UDP"}, "Iniciando thread de envio 2");
             this.threadEnviador.start();
         }
+        this.estaAberto = true;
     }
 
+    /**
+     * Retorna a porta em que o Socket esta escutando ou -1 caso o Socket nao
+     * tenha sido construido.
+     * @return Numero da porta escutada pelo Socket TCP.
+     */
+    @Override
+    public int getPortaDeEscuta() {
+        /**
+         *  [!] IMPORTANTE
+         *  A constante this.PORTA_ESCUTA eh a porta de escuta definida pelo 
+         *  usuario, que caso seja inferior a -1 significa que o socket recebera
+         *  um porta aleatoria. Sendo assim, seu valor nao dever ser retornado, 
+         *  mas sim o do Socket caso seja diferente de nulo ou -1 caso contrario.
+         */
+        if(this.socket == null) {
+            return -1;
+        }
+        return this.socket.getPort();
+    }
+    
     /**
      * Solicita que as threads de comunicacao parem. A solicitacao pode nao ser
      * atendida na hora.
@@ -216,6 +237,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
      */
     @Override
     public void close() {
+        this.estaAberto = false;
         this.socket.close();
         this.threadReceptor.interrupt();
         this.threadEnviador.interrupt();

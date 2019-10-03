@@ -167,6 +167,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         Socket socketNovo = this.abrirSocket(enderecoServidor, portaServidor);
         this.carregarSocket(socketNovo);
         this.iniciarServicosBasicos();
+        this.estaAberto = true;
     }
     
     /**
@@ -181,8 +182,22 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         Logger.registrar(INFO, new String[]{"COMUNICADOR_TCP"}, "Iniciando comunicador.");
         this.carregarSocket(socketNovo);
         this.iniciarServicosBasicos();
+        this.estaAberto = true;
     }
 
+    /**
+     * Retorna a porta em que o Socket esta escutando ou -1 caso o Socket nao
+     * tenha sido construido.
+     * @return Numero da porta escutada pelo Socket TCP.
+     */
+    @Override
+    public int getPortaDeEscuta() {
+        if(this.socket == null) {
+            return -1;
+        }
+        return this.socket.getPort();
+    }
+    
     /**
      * Solicita o encerremanto da execucao das threads de envio e recebimento, e
      * encerra as tarefas de envio de keep alive e monitoramento do keep alive.
@@ -211,6 +226,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
      */
     @Override
     public void close() {
+        this.estaAberto = false;
         try {
             this.enviador.close();
             this.receptor.close();

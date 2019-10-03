@@ -4,7 +4,6 @@ import Logger.Logger;
 import static Logger.Logger.Tipo.ERRO;
 import static Logger.Logger.Tipo.INFO;
 import stub.comunicacao.Comunicador;
-import stub.comunicacao.Mensageiro;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -73,6 +72,7 @@ public class InterpretadorServidor extends Destinatario {
         super.MENSAGEIRO.close();
     }
     
+    @Override
     public void receberMensagem(byte[] mensagem) {
         if(mensagem == null) {
             System.out.println("[!] Mano, vc ta jogando uma mensagem nula no interpretador! O que vc tem na cabeça tiw? Programa direito zeh mane");

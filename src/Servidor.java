@@ -1,4 +1,5 @@
 import comunicacao.Listener;
+import jogador.GerenciadorDeJogador;
 
 public class Servidor implements Runnable {
  
@@ -13,7 +14,7 @@ public class Servidor implements Runnable {
     
     @Override
     public void run() {
-        this.listener = new Listener(this.PORTA);
+        this.listener = new Listener(this.PORTA, new GerenciadorDeJogador());
         this.listener.run();
     }
     

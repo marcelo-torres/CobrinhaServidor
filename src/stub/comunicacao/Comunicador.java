@@ -308,6 +308,7 @@ public abstract class Comunicador {
 
     protected final Modo MODO;
     protected final Mensageiro MENSAGEIRO;
+    protected boolean estaAberto = false;
     
     public Comunicador(Modo modo, Mensageiro mensageiro) {
         this.MODO = modo;
@@ -322,4 +323,10 @@ public abstract class Comunicador {
      * @throws IOException 
      */
     public abstract void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException;
+    
+    public abstract int getPortaDeEscuta();
+    
+    public boolean estaAberto() {
+        return this.estaAberto;
+    }
 }

@@ -177,7 +177,24 @@ public class Mensageiro implements Closeable {
         this.COMUNICADOR_UDP.close();
     }
     
+    
+    public boolean comunicadorTCPEstaAberto() {
+        return this.COMUNICADOR_TCP.estaAberto();
+    }
+    
+    public boolean comunicadorUDPEstaAberto() {
+        return this.COMUNICADOR_UDP.estaAberto();
+    }
+    
 
+    public int getPortaEscutaTCP() {
+        return this.COMUNICADOR_TCP.getPortaDeEscuta();
+    }
+    
+    public int getPortaEscutaUDP() {
+        return this.COMUNICADOR_UDP.getPortaDeEscuta();
+    }
+    
     
     @Override
     public void close() {

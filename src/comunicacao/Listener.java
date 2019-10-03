@@ -7,23 +7,24 @@ import java.net.Socket;
 import stub.comunicacao.FalhaDeComunicacaoEmTempoRealException;
 
 /**
- *
- * @author marcelo
+ * 
  */
 public class Listener implements Runnable {
     
     private final int PORTA;
+    private final GerenciadorDeRequisicao GERENCIADOR_DE_REQUISICAO;
+    
     private ServerSocket socketDoServidor = null;
     private boolean escutar = true;
     
-    public Listener(int porta) {
-        this.PORTA = porta;
+    public Listener(int portaDeEscutaTCP, GerenciadorDeRequisicao gerenciadorDeRequisicao) {
+        this.PORTA = portaDeEscutaTCP;
+        this.GERENCIADOR_DE_REQUISICAO = gerenciadorDeRequisicao;
     }
     
     @Override
     public void run() {
         this.abrirSocketDoServidor();
-        
         while(this.ouvindo()) {
             Socket socketDoCliente = null;
             
@@ -31,15 +32,14 @@ public class Listener implements Runnable {
                 socketDoCliente = this.socketDoServidor.accept();
             } catch (IOException e) {
                 if(this.ouvindo()) {
-                    System.out.println("Servidor pausado") ;
+                    System.out.println("Servidor pausado");
                     return;
                 }
                 throw new FalhaDeComunicacaoEmTempoRealException("Erro ao aceitar conexao", e);
             }
             
-            new Thread(new Sessao(socketDoCliente)).start();
-        }    
-        
+            this.GERENCIADOR_DE_REQUISICAO.gerenciarRequisicao(socketDoCliente);
+        }
     }
     
     
@@ -60,8 +60,7 @@ public class Listener implements Runnable {
         try {
             this.socketDoServidor = new ServerSocket(this.PORTA);
         } catch (IOException e) {
-            throw new RuntimeException("Nao é possível abrir um socket na porta " + PORTA + ": " + e.getMessage());
+            throw new RuntimeException("Nao eh possivel abrir um socket na porta " + PORTA + ": " + e.getMessage());
         }
     }
-    
 }
