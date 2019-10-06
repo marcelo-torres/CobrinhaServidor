@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.net.InetAddress;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -314,15 +313,6 @@ public abstract class Comunicador {
         this.MODO = modo;
         this.MENSAGEIRO = mensageiro;
     }
-    
-    /**
-     * Realiza as tarefas necessarias para viabilizar a conexao.
-     * 
-     * @param enderecoServidor Endereco do servidor
-     * @param portaServidor Porta do servidor
-     * @throws IOException 
-     */
-    public abstract void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException;
     
     public abstract int getPortaDeEscuta();
     

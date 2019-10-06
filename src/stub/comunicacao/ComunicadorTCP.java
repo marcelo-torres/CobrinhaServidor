@@ -161,7 +161,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
      * @param portaServidor Porta de escuta do destinatario
      * @throws IOException Problema ao estabelecer a conexao
      */
-    @Override
+    //@Override
     public void iniciar(InetAddress enderecoServidor, int portaServidor) throws IOException {
         Logger.registrar(INFO, new String[]{"COMUNICADOR_TCP"}, "Iniciando comunicador.");
         Socket socketNovo = this.abrirSocket(enderecoServidor, portaServidor);

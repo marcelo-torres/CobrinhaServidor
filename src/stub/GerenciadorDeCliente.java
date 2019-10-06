@@ -49,6 +49,8 @@ public class GerenciadorDeCliente implements Jogador, Closeable {
     @Override
     public void close() {
         this.MENSAGEIRO.close();
+        this.receptor.parar();
+        this.threadDeRecepcao.interrupt();
         throw new UnsupportedOperationException();
     }
     
@@ -57,6 +59,7 @@ public class GerenciadorDeCliente implements Jogador, Closeable {
     public void iniciar(Socket socket) throws Exception {
         try {
             this.MENSAGEIRO.iniciarTCP(socket);
+            this.iniciarServicoDeRecepcao();
         } catch(IOException ioe) {
             Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro ao tentar iniciar a comunicacao.");
             throw new Exception("Nao foi possivel iniciar a comunicacao com o servidor");
@@ -74,7 +77,7 @@ public class GerenciadorDeCliente implements Jogador, Closeable {
     
     public void algumMetodoQueVaiPrecisarUsarConexaoUDP() {
         try {
-            this.MENSAGEIRO.iniciarUDP();
+            this.MENSAGEIRO.iniciarUDP(1235);
         } catch(IOException ioe) {
             // Transparencia total eh impossivel
             throw new RuntimeException("Nao foi possivel executar o metodo algumMetodoQueVaiPrecisarUsarConexaoUDP");

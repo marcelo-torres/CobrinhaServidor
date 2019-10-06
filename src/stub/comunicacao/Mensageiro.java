@@ -1,7 +1,5 @@
 package stub.comunicacao;
 
-import Logger.Logger;
-import static Logger.Logger.Tipo.ERRO;
 import stub.comunicacao.Comunicador.Modo;
 import java.io.Closeable;
 import java.io.IOException;
@@ -36,8 +34,6 @@ public class Mensageiro implements Closeable {
     private final InetAddress ENDERECO_SERVIDOR;
     private final int PORTA_TCP_SERVIDOR;
     private final int PORTA_UDP_SERVIDOR;
-    
-    
     
     /**
      * Cria as filas de mensagem e os comunicadores.
@@ -74,13 +70,12 @@ public class Mensageiro implements Closeable {
                 modo,
                 this,
                 gerenciadorDeException,
-                this.TAMANHO_MENSAGEM_UDP,
-                portaEscutarUDP);
+                this.TAMANHO_MENSAGEM_UDP);
     }
     
     /**
      * Inicia uma conexao TCP com host de endereco e porta definidos no 
-     * construtor, e inicia a thread de entrega de mensagens ao destinatario.
+     * construtor.
      * 
      * @throws IOException Erro ao iniciar a conexao.
      */
@@ -89,8 +84,7 @@ public class Mensageiro implements Closeable {
     }
     
     /**
-     * Mantem uma conexao estabelecida com o socket passado por parametro e
-     * inicia a thread de entrega de mensagens ao destinatario.
+     * Mantem uma conexao estabelecida com o socket passado por parametro.
      * 
      * @param socket Socket com a conexao
      * @throws IOException Erro ao iniciar a conexao.
@@ -114,8 +108,13 @@ public class Mensageiro implements Closeable {
      * 
      * @throws IOException Erro ao configurar o socket
      */
-    public void iniciarUDP() throws IOException {
-        this.COMUNICADOR_UDP.iniciar(this.ENDERECO_SERVIDOR, this.PORTA_UDP_SERVIDOR);
+    public void iniciarUDP(int portaDeEscuta) throws IOException {
+        this.COMUNICADOR_UDP.iniciar(portaDeEscuta);
+        
+    }
+    
+    public void definirDestinatario(InetAddress enderecoDoServidor, int portaDeEscutaUDPDoServidor) {
+        this.COMUNICADOR_UDP.definirDestinatario(ENDERECO_SERVIDOR, PORTA_TCP_SERVIDOR);
     }
     
     /**
