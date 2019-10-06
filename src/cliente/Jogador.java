@@ -1,4 +1,4 @@
-package jogo;
+package cliente;
 
 public interface Jogador {
     

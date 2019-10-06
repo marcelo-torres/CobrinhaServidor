@@ -1,15 +1,18 @@
-package jogador;
+package comunicacao_geral;
 
-import Sessao.Sessao;
-import comunicacao.GerenciadorDeRequisicao;
+import comunicacao_geral.GerenciadorDeRequisicao;
 import java.net.Socket;
 import java.util.LinkedList;
+import cliente.RepresentanteJogador;
 
-public class GerenciadorDeJogador implements GerenciadorDeRequisicao {
+public class GerenciadorDeConexoes implements GerenciadorDeRequisicao {
 
     @Override
     public void gerenciarRequisicao(Socket socket) {
-        new Thread(new Sessao(socket)).start();
+        
+        // TODO salvar as threads ativas
+        
+        new Thread(new RepresentanteJogador(socket)).start();
     }
     
     public static class ListaLimitada<E>{

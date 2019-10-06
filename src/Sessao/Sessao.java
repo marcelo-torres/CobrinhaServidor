@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import stub.GerenciadorDeCliente;
 
 /**
  *
@@ -12,7 +13,7 @@ import java.net.UnknownHostException;
  */
 public class Sessao implements Runnable {
 
-    private final InterpretadorServidor INTERPRETADOR;
+    private final GerenciadorDeCliente GERENCIADOR_DE_CLIENTE;
     
     private Socket socketDoCliente;
     
@@ -32,7 +33,7 @@ public class Sessao implements Runnable {
         int portaTCPServidor = 0;
         int portaUDPServidor = 1235; // eh preciso receber do cliente
         
-        this.INTERPRETADOR = new InterpretadorServidor(portaEscutarUDP, enderecoCliente, portaTCPServidor, portaUDPServidor);
+        this.GERENCIADOR_DE_CLIENTE = new GerenciadorDeCliente(portaEscutarUDP, enderecoCliente, portaTCPServidor, portaUDPServidor);
     }
     
     @Override
@@ -43,7 +44,7 @@ public class Sessao implements Runnable {
         
         
         try {
-            this.INTERPRETADOR.iniciar(socketDoCliente);
+            this.GERENCIADOR_DE_CLIENTE.iniciar(socketDoCliente);
             //this.COMUNICADOR_TCP.iniciar(socketDoCliente);
             //this.COMUNICADOR_UDP.iniciar(enderecoCliente, portaDeEscutaDoCliente);
         } catch(Exception ioe) {
@@ -115,7 +116,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagens) {
             pausar(100);
-            this.INTERPRETADOR.enviarMensagemTCPLembrarDeApagarEsteMetodo(mensagem.getBytes());
+            this.GERENCIADOR_DE_CLIENTE.enviarMensagemTCPLembrarDeApagarEsteMetodo(mensagem.getBytes());
         }
     }
     
@@ -128,7 +129,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagens) {
             pausar(300);
-            this.INTERPRETADOR.enviarMensagemTCPLembrarDeApagarEsteMetodo(mensagem.getBytes());
+            this.GERENCIADOR_DE_CLIENTE.enviarMensagemTCPLembrarDeApagarEsteMetodo(mensagem.getBytes());
         }
     }
     
@@ -145,7 +146,7 @@ public class Sessao implements Runnable {
         
         for(String mensagem : mensagensUDP) {
             pausar(100);
-            this.INTERPRETADOR.enviarMensagemUDPLembrarDeApagarEsteMetodo(mensagem.getBytes());
+            this.GERENCIADOR_DE_CLIENTE.enviarMensagemUDPLembrarDeApagarEsteMetodo(mensagem.getBytes());
         }
     }
 }

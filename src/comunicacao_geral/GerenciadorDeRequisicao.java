@@ -1,4 +1,4 @@
-package comunicacao;
+package comunicacao_geral;
 
 import java.net.Socket;
 
