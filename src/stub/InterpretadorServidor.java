@@ -3,10 +3,10 @@ package stub;
 public class InterpretadorServidor {
     
     public String interpretar(byte[] mensagem) {
-        return "";
+        return new String(mensagem);
     }
     
     public static byte[] interpretar(String mensagem) {
-        return new byte[0];
+        return mensagem.getBytes();
     }
 }

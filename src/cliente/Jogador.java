@@ -1,6 +1,8 @@
 package cliente;
 
-public interface Jogador {
+import java.io.Closeable;
+
+public interface Jogador extends Closeable {
     
     // DEFINIR RETORNOS
     
@@ -12,4 +14,7 @@ public interface Jogador {
     public void andarParaBaixo();
     public void andarParaEsquerda();
     public void andarParaDireita();
+    
+    @Override
+    public void close();
 }

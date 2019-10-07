@@ -54,7 +54,7 @@ public class Sessao implements Runnable {
         
         Sessao sessao = this;
         
-        new Thread() {
+        /*new Thread() {
             Sessao s = sessao;
             @Override
             public void run() {
@@ -77,7 +77,7 @@ public class Sessao implements Runnable {
             public void run() {
                 s.teste3_udp();
             }
-        }.start();
+        }.start();*/
         
 
         
@@ -103,7 +103,7 @@ public class Sessao implements Runnable {
         }
     }
     
-    public void teste1_tcp() {
+    /*public void teste1_tcp() {
         String[] mensagens = {
             "Mensagem TCP 1 do servidor",
             "Mensagem TCP 2 do servidor",
@@ -148,5 +148,5 @@ public class Sessao implements Runnable {
             pausar(100);
             this.GERENCIADOR_DE_CLIENTE.enviarMensagemUDPLembrarDeApagarEsteMetodo(mensagem.getBytes());
         }
-    }
+    }*/
 }

@@ -22,10 +22,14 @@ public class RepresentanteJogador implements Runnable, cliente.Jogador {
     }
 
     @Override
+    public void close() {
+    
+    }
+    
+    @Override
     public void run() {
         try {
             this.GerenciadorDeCliente.iniciar(this.SOCKET);
-            this.GerenciadorDeCliente.algumMetodoQueVaiPrecisarUsarConexaoUDP();
             // UMA GRANDE LOGICA VEM AQUI
             
         } catch(IOException ioe) {
@@ -34,7 +38,7 @@ public class RepresentanteJogador implements Runnable, cliente.Jogador {
         
         }
         
-        String[] mensagens = {
+        /*String[] mensagens = {
             "Mensagem TCP 1 do servidor",
             "Mensagem TCP 2 do servidor",
             "Mensagem TCP 3 do servidor",
@@ -62,7 +66,7 @@ public class RepresentanteJogador implements Runnable, cliente.Jogador {
         for(String mensagem : mensagensUDP) {
             pausar(100);
             this.GerenciadorDeCliente.enviarMensagemUDPLembrarDeApagarEsteMetodo(mensagem.getBytes());
-        }
+        }*/
     }
     
     private void pausar(int tempo) {
