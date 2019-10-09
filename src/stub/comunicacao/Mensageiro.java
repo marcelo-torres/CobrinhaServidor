@@ -114,7 +114,7 @@ public class Mensageiro implements Closeable {
     }
     
     public void definirDestinatario(InetAddress enderecoDoServidor, int portaDeEscutaUDPDoServidor) {
-        this.COMUNICADOR_UDP.definirDestinatario(ENDERECO_SERVIDOR, PORTA_TCP_SERVIDOR);
+        this.COMUNICADOR_UDP.definirDestinatario(enderecoDoServidor, portaDeEscutaUDPDoServidor);
     }
     
     /**
