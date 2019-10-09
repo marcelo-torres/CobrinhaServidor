@@ -40,10 +40,8 @@ public class GerenciadorDeCliente implements Jogador, Closeable {
         
         this.MENSAGEIRO = new Mensageiro(
                 Comunicador.Modo.CLIENTE,
-                portaEscutarUDP,
                 enderecoDoServidor,
                 portaTCPDoServidor,
-                portaUDPDoServidor,
                 this.GERENCIADOR_DE_EXCEPTION);
         
         this.ENDERECO_DO_SERVIDOR = enderecoDoServidor;
@@ -62,7 +60,12 @@ public class GerenciadorDeCliente implements Jogador, Closeable {
         
         switch(codigo) {
             case "MSG":
-                System.out.println("[Interpretador] Mensagem recebida: " + conteudo);
+                System.out.println("[STUB] Mensagem recebida: " + conteudo);
+                
+                if(conteudo.startsWith("[UDP] Jogador")) {
+                    this.MENSAGEIRO.inserirFilaEnvioUDP("MSG [UDP] O servidor manda um salve pro jogador".getBytes());
+                    System.out.println("----------------> equal");
+                } else //System.out.println("---------------->  Not equal:" + conteudo);
                 break;
             case "COM":
                 if(conteudo.startsWith("UDP_ABRIR")) {
