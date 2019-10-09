@@ -96,7 +96,6 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
             super.executar();
             while(super.emExecucao()) {    
                 byte[] mensagem = this.MENSAGEIRO.removerFilaEnvioUDP();
-                System.out.println("Agora vamos enviar via UDP a mensagem: " + new String(mensagem));
                 if(mensagem != null) {
                     try {
                         DatagramPacket pacote = new DatagramPacket(
