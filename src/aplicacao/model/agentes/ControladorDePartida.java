@@ -1,4 +1,6 @@
-package aplicacao.jogo;
+package aplicacao.model.agentes;
+
+import aplicacao.model.send.Arena;
 
 public interface ControladorDePartida {
     
@@ -7,7 +9,8 @@ public interface ControladorDePartida {
     public void adversarioSaiu();
     
     public void irParaOHall();
-    public void logar(String login); // AJUSTAR ISSO
+    public void logar(String login);
     public void falhaAoLogar(String mensagem);
+    public void entregarQuadro(Arena arena);
     
 }

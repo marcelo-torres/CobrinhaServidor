@@ -1,6 +1,6 @@
 package stub.comando.jogador;
 
-import aplicacao.jogo.Jogador;
+import aplicacao.model.agentes.Jogador;
 import stub.comando.Comando;
 
 public abstract class ComandoJogador extends Comando {

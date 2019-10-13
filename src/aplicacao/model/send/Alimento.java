@@ -1,4 +1,4 @@
-package jogo;
+package aplicacao.model.send;
 
 public class Alimento extends EntidadePosicionavel{
     

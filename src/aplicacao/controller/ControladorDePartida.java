@@ -1,8 +1,8 @@
-package controller;
+package aplicacao.controller;
 
-import model.Jogador;
-import model.Partida;
-import model.send.Arena;
+import aplicacao.model.Jogador;
+import aplicacao.model.Partida;
+import aplicacao.model.send.Arena;
 
 public class ControladorDePartida implements Runnable{
 

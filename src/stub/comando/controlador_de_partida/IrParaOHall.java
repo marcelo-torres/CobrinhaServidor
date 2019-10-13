@@ -2,15 +2,15 @@ package stub.comando.controlador_de_partida;
 
 import aplicacao.model.agentes.ControladorDePartida;
 
-public class VoceGanhou extends ComandoControladorDePartida {
+public class IrParaOHall extends ComandoControladorDePartida {
     
-    public VoceGanhou(String codigo, ControladorDePartida controladorPartida) {
+    public IrParaOHall(String codigo, ControladorDePartida controladorPartida) {
         super(codigo, controladorPartida);
     }
     
     @Override
     public void executar() {
-        super.CONTROLADOR_PARTIDA.voceGanhou();
+        super.CONTROLADOR_PARTIDA.irParaOHall();
     }
     
     @Override

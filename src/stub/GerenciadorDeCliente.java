@@ -1,16 +1,20 @@
 package stub;
 
-import aplicacao.jogo.Jogador;
+import Logger.Logger;
+import static Logger.Logger.Tipo.ERRO;
+import aplicacao.model.agentes.ControladorDePartida;
+import aplicacao.model.agentes.Jogador;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
+import aplicacao.model.send.Arena;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
 
-public class GerenciadorDeCliente extends Stub {
+public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
     
     private final Jogador JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
@@ -32,7 +36,8 @@ public class GerenciadorDeCliente extends Stub {
     @Override
     public void receberMensagem(byte[] mensagem) {
         if(mensagem == null) {
-            System.out.println("[!] Mano, vc ta jogando uma mensagem nula no interpretador! O que vc tem na cabeça tiw? Programa direito zeh mane");
+            Logger.registrar(ERRO, new String[]{"GERENCIADOR_DE_CLIENTE"}, "Mensagem nula recebida. A mensagem sera ignorada.");
+            return;
         }
         
         this.INTERPRETADOR.interpretar(mensagem);
@@ -40,14 +45,54 @@ public class GerenciadorDeCliente extends Stub {
     
     
     /* ########################### CHAMADAS DE RPC ########################## */
+
+    @Override
+    public void vocerPerdeu() {
+        byte[] mensagem = this.INTERPRETADOR.codificarVocerPerdeu();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+
+    @Override
+    public void voceGanhou() {
+        byte[] mensagem = this.INTERPRETADOR.codificarVoceGanhou();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+
+    @Override
+    public void adversarioSaiu() {
+        byte[] mensagem = this.INTERPRETADOR.codificarAdversarioSaiu();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+
+    @Override
+    public void irParaOHall() {
+        byte[] mensagem = this.INTERPRETADOR.codificarIrParaOHall();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+
+    @Override
+    public void logar(String login) {
+        byte[] mensagem = this.INTERPRETADOR.codificarLogar(login);
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+
+    @Override
+    public void falhaAoLogar(String mensagemTextual) {
+        byte[] mensagem = this.INTERPRETADOR.codificarFalhaAoLogar(mensagemTextual);
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
+    @Override
+    public void entregarQuadro(Arena arena) {
+        byte[] mensagem = this.INTERPRETADOR.codificarEntregarQuadro(arena);
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
     
     @Override
     protected LinkedList<Comando> criarComandosNecessarios() {
         
         LinkedList<Comando> listaDeComandos = new LinkedList<>();
-        
-        // resolver essa bagaca aqui
-        //listaDeComandos.add(new AdversarioSaiu("adversarioSaiu",));
         
         listaDeComandos.add(new ComandoExibirMensagem("exibirMensagem"));
         listaDeComandos.add(new AtenderPedidoInicioDeAberturaUDP("atenderPedidoInicioDeAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));

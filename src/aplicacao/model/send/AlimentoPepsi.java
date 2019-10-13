@@ -1,4 +1,4 @@
-package model.send;
+package aplicacao.model.send;
 
 public class AlimentoPepsi extends Alimento{
     

@@ -7,7 +7,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.concurrent.Semaphore;
-import aplicacao.jogo.ErroApresentavelException;
+import aplicacao.model.ErroApresentavelException;
 import java.net.Socket;
 import java.util.LinkedList;
 import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.ATIVADO;

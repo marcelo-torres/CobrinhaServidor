@@ -1,12 +1,12 @@
- package model;
+ package aplicacao.model;
 
-import model.send.Arena;
-import model.send.Alimento;
-import model.send.Cobra;
-import model.send.AlimentoBanana;
-import controller.ControladorDePartida;
+import aplicacao.model.send.Arena;
+import aplicacao.model.send.Alimento;
+import aplicacao.model.send.Cobra;
+import aplicacao.model.send.AlimentoBanana;
+import aplicacao.controller.ControladorDePartida;
 import java.util.ArrayList;
-import model.send.EntidadePosicionavel;
+import aplicacao.model.send.EntidadePosicionavel;
  
 @SuppressWarnings("Serial")
  

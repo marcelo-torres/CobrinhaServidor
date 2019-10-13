@@ -1,6 +1,6 @@
 package cliente;
 
-import aplicacao.jogo.Jogador;
+import aplicacao.model.agentes.Jogador;
 import java.net.Socket;
 import stub.GerenciadorDeCliente;
 

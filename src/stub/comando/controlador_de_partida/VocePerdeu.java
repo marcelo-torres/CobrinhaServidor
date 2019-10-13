@@ -1,6 +1,6 @@
 package stub.comando.controlador_de_partida;
 
-import aplicacao.jogo.ControladorDePartida;
+import aplicacao.model.agentes.ControladorDePartida;
 
 public class VocePerdeu extends ComandoControladorDePartida {
     

@@ -3,6 +3,7 @@ package stub;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedList;
+import aplicacao.model.send.Arena;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import stub.comando.Comando;
@@ -179,6 +180,42 @@ public class Interpretador {
     
     public byte[] codificarIniciarPartida() {
         byte[] mensagem = this.empacotarChamadaDeMetodo("iniciarPartida");
+        return mensagem;
+    }
+    
+    public byte[] codificarVocerPerdeu() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("vocerPerdeu");
+        return mensagem;
+    }
+
+    public byte[] codificarVoceGanhou() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("voceGanhou");
+        return mensagem;
+    }
+
+    public byte[] codificarAdversarioSaiu() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("adversarioSaiu");
+        return mensagem;
+    }
+
+    public byte[] codificarIrParaOHall() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("irParaOHall");
+        return mensagem;
+    }
+
+    public byte[] codificarLogar(String login) {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("logar");
+        return mensagem;
+    }
+
+    public byte[] codificarFalhaAoLogar(String mensagemTextual) {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("falhaAoLogar");
+        return mensagem;
+    }
+    
+    public byte[] codificarEntregarQuadro(Arena arena) {
+        if(true) throw new UnsupportedOperationException("FALTA IMPLEMENTAR A SERIALIZACAO DO QUADRO");
+        byte[] mensagem = this.empacotarChamadaDeMetodo("entregarQuadro"/* EMPACOTAR ARENA AQUI */);
         return mensagem;
     }
 }

@@ -1,6 +1,6 @@
 package stub.comando.jogador;
 
-import aplicacao.jogo.Jogador;
+import aplicacao.model.agentes.Jogador;
 
 public class AndarParaCima extends ComandoJogador {
     

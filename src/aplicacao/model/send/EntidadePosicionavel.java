@@ -1,4 +1,4 @@
-package jogo;
+package aplicacao.model.send;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -7,38 +7,38 @@ public class EntidadePosicionavel {
     protected ArrayList<Integer[]> vertices = new ArrayList<>();
     protected Color cor;
     
-    protected ArrayList getPosicoes(){
+    public ArrayList<Integer[]> getPosicoes(){
         return vertices;
     }
     
-    protected void setCor(char c){
+    public void setCor(char c){
         switch(c){
             case 'b':
-                cor = new Color(23, 124, 255);
+                cor = new Color(81, 100, 184);
                 break;
             case 'y':
-                cor =  Color.YELLOW;
+                cor = new Color(218, 230, 67);
                 break;
             case 'g':
-                cor = Color.GREEN;
+                cor = new Color(120, 255, 120);
                 break;
             case 'p':
-                cor = Color.PINK;
+                cor = new Color(255, 120, 151);
                 break;
             default:
                 break;
         }
     }
     
-    protected Color getCor(){
+    public Color getCor(){
         return cor;
     }
     
-    protected void insertPosicao(int x, int y){
+    public void insertPosicao(int x, int y){
         vertices.add(new Integer[]{x, y});
     }
     
-    protected void apagaPosicoes(){
+    public void apagaPosicoes(){
         vertices.clear();
     }
 }
