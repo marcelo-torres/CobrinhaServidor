@@ -1,33 +1,29 @@
 package stub;
 
-import cliente.Jogador;
+import aplicacao.jogo.Jogador;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
-import java.util.concurrent.Semaphore;
-import java.util.regex.Pattern;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
-import stub.comando.gerenciador_de_udp.AtenderPedidoInicioDeAberturaUDP;
-import stub.comando.gerenciador_de_udp.ContinuarAberturaUDP;
-import stub.comando.gerenciador_de_udp.IniciarPedidoDeAberturaUDP;
+import stub.comando.controlador_de_partida.AdversarioSaiu;
+import stub.comando.gerenciador_de_udp.*;
+import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
 
-public class GerenciadorDeCliente extends Stub implements Jogador {
+public class GerenciadorDeCliente extends Stub {
     
-    private final Semaphore SEMAFORO_ATICAO_UDP = new Semaphore(0);
-    
+    private final Jogador JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
-    
     private final GerenciadorDeConexaoUDPRemota GERENCIADOR_CONEXAO_UDP;
     
-    
-    public GerenciadorDeCliente(Socket socket) {
-    
+    public GerenciadorDeCliente(Jogador jogador, Socket socket) {
         super(Comunicador.Modo.SERVIDOR,
                 socket.getInetAddress(),
                 socket.getPort());
         
+        
+        this.JOGADOR = jogador;
         
         //this.CONTROLADOR_CLIENTE = controladorCliente;        
         this.ENDERECO_DO_SERVIDOR = socket.getInetAddress();
@@ -50,40 +46,7 @@ public class GerenciadorDeCliente extends Stub implements Jogador {
     
     /* ########################### CHAMADAS DE RPC ########################## */
     
-    @Override
-    public void iniciarPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void desistirDeProcurarPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void encerrarPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void andarParaCima() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void andarParaBaixo() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void andarParaEsquerda() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void andarParaDireita() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    
     
     
     
@@ -98,6 +61,14 @@ public class GerenciadorDeCliente extends Stub implements Jogador {
         listaDeComandos.add(new AtenderPedidoInicioDeAberturaUDP("atenderPedidoInicioDeAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new ContinuarAberturaUDP("continuarAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new IniciarPedidoDeAberturaUDP("iniciarPedidoDeAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
+        
+        listaDeComandos.add(new AndarParaBaixo("andarParaBaixo", this.JOGADOR));
+        listaDeComandos.add(new AndarParaCima("andarParaCima", this.JOGADOR));
+        listaDeComandos.add(new AndarParaDireita("andarParaDireita", this.JOGADOR));
+        listaDeComandos.add(new AndarParaEsquerda("andarParaEsquerda", this.JOGADOR));
+        listaDeComandos.add(new DesistirDeProcurarPartida("desistirDeProcurarPartida", this.JOGADOR));
+        listaDeComandos.add(new EncerrarPartida("encerrarPartida", this.JOGADOR));
+        listaDeComandos.add(new IniciarPartida("iniciarPartida", this.JOGADOR));
         
         return listaDeComandos;
     }

@@ -1,17 +1,18 @@
 package cliente;
 
+import aplicacao.jogo.Jogador;
 import java.net.Socket;
 import stub.GerenciadorDeCliente;
 
 
-public class RepresentanteJogador implements Runnable, cliente.Jogador {
+public class RepresentanteJogador implements Runnable, Jogador {
     
     private final GerenciadorDeCliente GerenciadorDeCliente;
     private final Socket SOCKET;
     
     public RepresentanteJogador(Socket socket) {
         this.SOCKET = socket;
-        this.GerenciadorDeCliente = new GerenciadorDeCliente(socket);
+        this.GerenciadorDeCliente = new GerenciadorDeCliente(this, socket);
     }
 
     @Override
@@ -64,37 +65,38 @@ public class RepresentanteJogador implements Runnable, cliente.Jogador {
 
     @Override
     public void iniciarPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Representante do jogador diz: iniciarPartida");
     }
 
     @Override
     public void desistirDeProcurarPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Representante do jogador diz: desistirDeProcurarPartida");
     }
 
     @Override
     public void encerrarPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Representante do jogador diz: iniciarPartida");
     }
 
+    
     @Override
     public void andarParaCima() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Representante do jogador diz: andarParaCima");
     }
 
     @Override
     public void andarParaBaixo() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Representante do jogador diz: andarParaBaixo");
     }
 
     @Override
     public void andarParaEsquerda() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Representante do jogador diz: andarParaEsquerda");
     }
 
     @Override
     public void andarParaDireita() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Representante do jogador diz: andarParaDireita");
     }
     
     
