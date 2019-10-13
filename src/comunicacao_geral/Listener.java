@@ -1,6 +1,7 @@
 package comunicacao_geral;
 
-import Sessao.Sessao;
+import Logger.Logger;
+import static Logger.Logger.Tipo.INFO;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,7 +33,7 @@ public class Listener implements Runnable {
                 socketDoCliente = this.socketDoServidor.accept();
             } catch (IOException e) {
                 if(this.ouvindo()) {
-                    System.out.println("Servidor pausado");
+                    Logger.registrar(INFO, new String[]{"LISTENER"}, "Servidor pausado");
                     return;
                 }
                 throw new FalhaDeComunicacaoEmTempoRealException("Erro ao aceitar conexao", e);

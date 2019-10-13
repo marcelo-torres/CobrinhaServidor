@@ -1,7 +1,5 @@
 package cliente;
 
-import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import stub.GerenciadorDeCliente;
 
@@ -13,12 +11,7 @@ public class RepresentanteJogador implements Runnable, cliente.Jogador {
     
     public RepresentanteJogador(Socket socket) {
         this.SOCKET = socket;
-        
-        int portaEscutarUDP = 1234; // pegaAleatoria
-        InetAddress enderecoCliente = socket.getInetAddress();
-        int portaTCPCliente = socket.getPort();
-        int portaUDPCliente = 1235; // indefinida
-        this.GerenciadorDeCliente = new GerenciadorDeCliente(portaEscutarUDP, enderecoCliente, portaTCPCliente, portaUDPCliente);
+        this.GerenciadorDeCliente = new GerenciadorDeCliente(socket);
     }
 
     @Override
@@ -28,15 +21,7 @@ public class RepresentanteJogador implements Runnable, cliente.Jogador {
     
     @Override
     public void run() {
-        try {
-            this.GerenciadorDeCliente.iniciar(this.SOCKET);
-            // UMA GRANDE LOGICA VEM AQUI
-            
-        } catch(IOException ioe) {
-            
-        } catch(Exception e) {
-        
-        }
+
         
         /*String[] mensagens = {
             "Mensagem TCP 1 do servidor",
