@@ -111,17 +111,20 @@ public class Interpretador {
     }
     
     
+    /* ###################################################################### */
     /* ################# CODIFICACAO DE CHAMADAS DE METODO ################## */
+    /* ###################################################################### */
     
+    /* ##################### COMANDO GERENCIADOR DE UDP ##################### */
     
     public byte[] codificarExibirMensagem(String mensagemTextual) {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("exibirMensagem" , mensagemTextual);
+        byte[] mensagem = this.empacotarChamadaDeMetodo("exibirMensagem", mensagemTextual);
         return mensagem;
     }
     
     public byte[] codificarAtenderPedidoInicioDeAberturaUDP(int portaUDPServidor) {
         String arg0 = String.valueOf(portaUDPServidor);
-        byte[] mensagem = this.empacotarChamadaDeMetodo("atenderPedidoInicioDeAberturaUDP" , arg0);
+        byte[] mensagem = this.empacotarChamadaDeMetodo("atenderPedidoInicioDeAberturaUDP", arg0);
         return mensagem;
     }
     
@@ -131,6 +134,18 @@ public class Interpretador {
         return mensagem;
     }
     
+    public byte[] codificarIniciarFechamentoConexaoUDP() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("iniciarFechamentoConexaoUDP");
+        return mensagem;
+    }
+    
+    public byte[] codificarFecharConexaoUDP() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("fecharConexaoUDP");
+        return mensagem;
+    }
+    
+    
+    /* ########################## COMANDO JOGADOR ########################### */
     
     public byte[] codificarAndarParaBaixo() {
         byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaBaixo");

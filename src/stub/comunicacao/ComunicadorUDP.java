@@ -218,6 +218,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
         this.estaAberto = false;
         this.receptor.pararExecucao();
         this.enviador.pararExecucao();
+        this.socket.disconnect();
         this.socket.close();
         this.threadReceptor.interrupt();
         this.threadEnviador.interrupt();

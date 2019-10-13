@@ -9,6 +9,11 @@ import java.net.InetAddress;
 import java.util.concurrent.Semaphore;
 import aplicacao.jogo.ErroApresentavelException;
 import java.net.Socket;
+import java.util.LinkedList;
+import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.ATIVADO;
+import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.ATIVANDO;
+import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.DESATIVADO;
+import stub.comando.Comando;
 import stub.comunicacao.Comunicador;
 import stub.comunicacao.Mensageiro;
 
@@ -35,6 +40,8 @@ public abstract class Stub implements Closeable {
     }
     
     public abstract void receberMensagem(byte[] mensagem);
+    
+    protected abstract LinkedList<Comando> criarComandosNecessarios();
     
     protected void iniciar(Socket socket) {
         try {
@@ -117,7 +124,7 @@ public abstract class Stub implements Closeable {
         }
         
         public synchronized void parar() {
-            this.MENSAGEIRO.fecharFilaRecebimento();
+            //this.MENSAGEIRO.fecharFilaRecebimento();
             this.emEexecucao = false;
         }
     }
@@ -127,15 +134,24 @@ public abstract class Stub implements Closeable {
      * Gerencia a abertura da comunicacao UDP com um outro host. A abertura da
      * comunicacao deve ser sincronizada. 
      */
-    public class GerenciadorDeConexaoUDPRemota {
+    public static class GerenciadorDeConexaoUDPRemota {
     
-        private final Semaphore SEMAFORO_ATICAO_UDP = new Semaphore(0);
+        public static enum Estado {
+            ATIVANDO,
+            ATIVADO,
+            DESATIVADO
+        }
+        
+        private final Semaphore SEMAFORO_ATIVACAO_UDP = new Semaphore(0);
         private final Mensageiro MENSAGEIRO;
         private final InetAddress ENDERECO_DO_SERVIDOR;
         private final Interpretador INTERPRETADOR;
         
-        private boolean hostProntoParaReceberUDP = false;
-        private boolean iniciouProcessoDeAbertura = false;
+        //private boolean hostProntoParaReceberUDP = false;
+        //private boolean iniciouProcessoDeAbertura = false;
+        //private boolean encerramentoSolicitado = false;
+        
+        private Estado estado = DESATIVADO;
         
         public GerenciadorDeConexaoUDPRemota(Mensageiro mensageiro, InetAddress enderecoServidor, Interpretador interpretador) {
             this.MENSAGEIRO = mensageiro;
@@ -158,14 +174,17 @@ public abstract class Stub implements Closeable {
                     
                     int portaDeEscutaServidor = this.MENSAGEIRO.getPortaEscutaUDP();
                     byte[] mensagem = this.INTERPRETADOR.codificarAtenderPedidoInicioDeAberturaUDP(portaDeEscutaServidor);
-                    
-                    this.MENSAGEIRO.inserirFilaEnvioTCPNaFrente(mensagem);
-                    this.iniciouProcessoDeAbertura = true;
+                    this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+                    //this.iniciouProcessoDeAbertura = true;
+                    this.estado = ATIVANDO;
+                    this.SEMAFORO_ATIVACAO_UDP.acquire();
                 }
             } catch(IOException ioe) {
                 Logger.registrar(ERRO, new String[]{"STUB"}, "Erro ao tentar iniciar a comunicacao.", ioe);
-                this.SEMAFORO_ATICAO_UDP.release();
+                this.SEMAFORO_ATIVACAO_UDP.release();
                 throw new RuntimeException("Nao foi possivel iniciar a comunicacao com o host");
+            } catch(InterruptedException ie) {
+                Logger.registrar(ERRO, new String[]{"STUB"}, "Espera no iniciarPedidoDeAberturaUDP() interrompida", ie);
             }
         }
 
@@ -184,17 +203,31 @@ public abstract class Stub implements Closeable {
                     this.MENSAGEIRO.iniciarUDP(-1);
                 }
                 
-                int portaDeEscutaServidor = this.MENSAGEIRO.getPortaEscutaUDP();
-                byte[] mensagem = this.INTERPRETADOR.codificarContinuarAberturaUDP(portaDeEscutaServidor);
-                
-                this.MENSAGEIRO.inserirFilaEnvioTCPNaFrente(mensagem);
-                this.MENSAGEIRO.definirDestinatario(ENDERECO_DO_SERVIDOR, portaUDPServidor);
-                if(!this.iniciouProcessoDeAbertura) {
-                    this.hostProntoParaReceberUDP = true;
+                switch(this.estado) {
+                    case DESATIVADO:
+                        int portaDeEscutaServidor = this.MENSAGEIRO.getPortaEscutaUDP();
+                        byte[] mensagem = this.INTERPRETADOR.codificarContinuarAberturaUDP(portaDeEscutaServidor);
+                        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+                        this.MENSAGEIRO.definirDestinatario(ENDERECO_DO_SERVIDOR, portaUDPServidor);
+                        this.estado = ATIVADO;
+                        break;
+                    case ATIVANDO:
+                        throw new RuntimeException("Erro stub: n deveria estar ativando");
+                        //break;
+                    case ATIVADO:
+                        throw new RuntimeException("Erro stub: n deveria estar ativado");
+
+                        //break;
+                    default:
+                        throw new RuntimeException("Estado desconhecido");
                 }
+
+                /*if(!this.iniciouProcessoDeAbertura) {
+                    this.hostProntoParaReceberUDP = true;
+                }*/
             } catch(IOException ioe) {
                 Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro ao tentar iniciar a comunicacao.", ioe);
-                this.SEMAFORO_ATICAO_UDP.release();
+                this.SEMAFORO_ATIVACAO_UDP.release();
                 throw new RuntimeException("Nao foi possivel iniciar a comunicacao com o servidor");
             }
         }
@@ -208,26 +241,55 @@ public abstract class Stub implements Closeable {
          *                          remoto.
          */
         public void continuarAberturaUDP(int portaUDPServidor) {
+            /*if(!this.iniciouProcessoDeAbertura) {
+                // Caso o processo de abertura nao esteja mais aberto a mensagem
+                // deve ser ignorada.
+                return;
+            }*/
+            if(this.estado != ATIVANDO) {
+                return;
+            }
+            
             this.MENSAGEIRO.definirDestinatario(this.ENDERECO_DO_SERVIDOR, portaUDPServidor);
-            this.hostProntoParaReceberUDP = true;
-            this.SEMAFORO_ATICAO_UDP.release();
-            this.iniciouProcessoDeAbertura = false;
-            this.hostProntoParaReceberUDP = true;
+            this.SEMAFORO_ATIVACAO_UDP.release();
+            //this.iniciouProcessoDeAbertura = false;
+            //this.hostProntoParaReceberUDP = true;
+            this.estado = ATIVADO;
         }
         
         public void aguardarComunicacaoSerEstabelecida() throws InterruptedException {
-            this.SEMAFORO_ATICAO_UDP.acquire();
+            //this.SEMAFORO_ATIVACAO_UDP.acquire();
+        }
+        
+        public boolean conexaoEstaEstabelecida() {
+            //return this.hostProntoParaReceberUDP;
+            return (this.estado == ATIVADO);
         }
         
         
         /* ########################### FECHAMENTO ########################### */
         
         public void iniciarFechamentoConexaoUDP() {
-        
+            //this.hostProntoParaReceberUDP = false;
+            //this.iniciouProcessoDeAbertura = false;
+            this.estado = DESATIVADO;
+            this.MENSAGEIRO.encerrarUDP();
+            
+            byte[] mensagem = this.INTERPRETADOR.codificarFecharConexaoUDP();  
+            this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
         }
         
         public void fecharConexaoUDP() {
-        
+            /*if(this.iniciouProcessoDeAbertura) {
+                // Caso o processo de abertura esteja em andamento e tenha sido
+                // iniciado por este host, o pedido de fechamento de conexao
+                // deve ser ignorado para evitar inconsistencia
+                return;
+            }
+            this.hostProntoParaReceberUDP = false;
+            this.iniciouProcessoDeAbertura = false;*/
+            this.estado = DESATIVADO;
+            this.MENSAGEIRO.encerrarUDP();
         }
     }
     

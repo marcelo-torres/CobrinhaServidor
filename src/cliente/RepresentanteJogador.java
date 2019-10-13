@@ -75,7 +75,7 @@ public class RepresentanteJogador implements Runnable, Jogador {
 
     @Override
     public void encerrarPartida() {
-        System.out.println("Representante do jogador diz: iniciarPartida");
+        System.out.println("Representante do jogador diz: encerrarPartida");
     }
 
     

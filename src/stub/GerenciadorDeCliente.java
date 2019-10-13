@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.util.LinkedList;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
-import stub.comando.controlador_de_partida.AdversarioSaiu;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
@@ -21,14 +20,10 @@ public class GerenciadorDeCliente extends Stub {
         super(Comunicador.Modo.SERVIDOR,
                 socket.getInetAddress(),
                 socket.getPort());
-        
-        
-        this.JOGADOR = jogador;
-        
-        //this.CONTROLADOR_CLIENTE = controladorCliente;        
+            
+        this.JOGADOR = jogador;    
         this.ENDERECO_DO_SERVIDOR = socket.getInetAddress();
         this.GERENCIADOR_CONEXAO_UDP = new GerenciadorDeConexaoUDPRemota(this.MENSAGEIRO, this.ENDERECO_DO_SERVIDOR, this.INTERPRETADOR);
-        
         this.INTERPRETADOR.cadastrarComandos(this.criarComandosNecessarios());
         
         super.iniciar(socket);
@@ -46,11 +41,8 @@ public class GerenciadorDeCliente extends Stub {
     
     /* ########################### CHAMADAS DE RPC ########################## */
     
-    
-    
-    
-    
-    private LinkedList<Comando> criarComandosNecessarios() {
+    @Override
+    protected LinkedList<Comando> criarComandosNecessarios() {
         
         LinkedList<Comando> listaDeComandos = new LinkedList<>();
         
@@ -60,6 +52,8 @@ public class GerenciadorDeCliente extends Stub {
         listaDeComandos.add(new ComandoExibirMensagem("exibirMensagem"));
         listaDeComandos.add(new AtenderPedidoInicioDeAberturaUDP("atenderPedidoInicioDeAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new ContinuarAberturaUDP("continuarAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
+        listaDeComandos.add(new FecharConexaoUDP("fecharConexaoUDP", this.GERENCIADOR_CONEXAO_UDP));
+        listaDeComandos.add(new IniciarFechamentoConexaoUDP("iniciarFechamentoConexaoUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new IniciarPedidoDeAberturaUDP("iniciarPedidoDeAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
         
         listaDeComandos.add(new AndarParaBaixo("andarParaBaixo", this.JOGADOR));
