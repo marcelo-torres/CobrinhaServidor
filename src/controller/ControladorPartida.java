@@ -165,13 +165,32 @@ public class ControladorPartida implements Runnable{
         partida.processaAlimentos();
         partida.trataParedes();
     }
-     
-    public void setMovCobra1(int mov){
-        codUltimoMov1 = mov;
+    
+    public void cima(Jogador jg){
+        if(jg == jogador1)
+            codUltimoMov1 = 1;
+        else
+            codUltimoMov2 = 1;
     }
     
-    public void setMovCobra2(int mov){
-        codUltimoMov2 = mov;
+    public void baixo(Jogador jg){
+        if(jg == jogador1)
+            codUltimoMov1 = 2;
+        else
+            codUltimoMov2 = 2;
     }
     
+    public void esquerda(Jogador jg){
+        if(jg == jogador1)
+            codUltimoMov1 = 3;
+        else
+            codUltimoMov2 = 3;
+    }
+    
+    public void direita(Jogador jg){
+        if(jg == jogador1)
+            codUltimoMov1 = 4;
+        else
+            codUltimoMov2 = 4;
+    }
 }
