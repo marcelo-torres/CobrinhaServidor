@@ -1,8 +1,9 @@
 package aplicacao.model.send;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Arena {
+public class Arena implements Serializable {
     private int altura;
     private int largura;
     private final int tamanho;
