@@ -2,12 +2,12 @@ package stub;
 
 import Logger.Logger;
 import static Logger.Logger.Tipo.ERRO;
-import aplicacao.model.agentes.ControladorDePartida;
-import aplicacao.model.agentes.Jogador;
+import model.agentes.ControladorDePartida;
+import model.agentes.Jogador;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
-import aplicacao.model.send.Arena;
+import model.send.Arena;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
 import stub.comando.gerenciador_de_udp.*;

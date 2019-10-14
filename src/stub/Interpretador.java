@@ -3,7 +3,7 @@ package stub;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedList;
-import aplicacao.model.send.Arena;
+import model.send.Arena;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import stub.comando.Comando;

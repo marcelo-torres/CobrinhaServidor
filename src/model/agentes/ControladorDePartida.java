@@ -1,6 +1,6 @@
-package aplicacao.model.agentes;
+package model.agentes;
 
-import aplicacao.model.send.Arena;
+import model.send.Arena;
 
 public interface ControladorDePartida {
     
