@@ -1,10 +1,10 @@
 package stub.comando.jogador;
 
-import model.agentes.Jogador;
+import model.agentes.IJogador;
 
 public class DesistirDeProcurarPartida extends ComandoJogador {
     
-    public DesistirDeProcurarPartida(String codigo, Jogador jogador) {
+    public DesistirDeProcurarPartida(String codigo, IJogador jogador) {
         super(codigo, jogador);
     }
 

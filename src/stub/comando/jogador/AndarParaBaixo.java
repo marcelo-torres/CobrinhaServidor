@@ -1,10 +1,10 @@
 package stub.comando.jogador;
 
-import model.agentes.Jogador;
+import model.agentes.IJogador;
 
 public class AndarParaBaixo extends ComandoJogador {
     
-    public AndarParaBaixo(String codigo, Jogador jogador) {
+    public AndarParaBaixo(String codigo, IJogador jogador) {
         super(codigo, jogador);
     }
 

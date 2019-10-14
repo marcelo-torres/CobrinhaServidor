@@ -1,11 +1,12 @@
 package cliente;
 
+import model.agentes.IJogador;
 import java.net.Socket;
+import localizacoes.Local;
 import stub.GerenciadorDeCliente;
-import model.agentes.Jogador;
 
 
-public class RepresentanteJogador implements Runnable, Jogador {
+public class RepresentanteJogador implements Runnable,  IJogador {
     
     private final GerenciadorDeCliente GerenciadorDeCliente;
     private final Socket SOCKET;
@@ -20,41 +21,7 @@ public class RepresentanteJogador implements Runnable, Jogador {
     
     }
     
-    @Override
-    public void run() {
 
-        
-        /*String[] mensagens = {
-            "Mensagem TCP 1 do servidor",
-            "Mensagem TCP 2 do servidor",
-            "Mensagem TCP 3 do servidor",
-            "Mensagem TCP 4 do servidor",
-            "Mensagem TCP 5 do servidor",
-            "Mensagem TCP 6 do servidor",
-            "Mensagem TCP 7 do servidor",
-        };
-        
-        for(String mensagem : mensagens) {
-            pausar(100);
-            this.GerenciadorDeCliente.enviarMensagemTCPLembrarDeApagarEsteMetodo(mensagem.getBytes());
-        }
-        
-        String[] mensagensUDP = {
-            "Mensagem UDP 1 do servidor",
-            "Mensagem UDP 2 do servidor",
-            "Mensagem UDP 3 do servidor",
-            "Mensagem UDP 4 do servidor",
-            "Mensagem UDP 5 do servidor",
-            "Mensagem UDP 6 do servidor",
-            "Mensagem UDP 7 do servidor",
-        };
-        
-        for(String mensagem : mensagensUDP) {
-            pausar(100);
-            this.GerenciadorDeCliente.enviarMensagemUDPLembrarDeApagarEsteMetodo(mensagem.getBytes());
-        }*/
-    }
-    
     private void pausar(int tempo) {
         try {
             new Thread().sleep(tempo);
@@ -97,6 +64,26 @@ public class RepresentanteJogador implements Runnable, Jogador {
     @Override
     public void andarParaDireita() {
         System.out.println("Representante do jogador diz: andarParaDireita");
+    }
+
+    @Override
+    public double getVD() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Local getLocalAtual() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setLocalAtual(Local local) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void run() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     

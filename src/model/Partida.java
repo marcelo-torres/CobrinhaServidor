@@ -4,7 +4,7 @@ import model.send.Arena;
 import model.send.Alimento;
 import model.send.Cobra;
 import model.send.AlimentoBanana;
-import controller.ControladorPartida;
+import controller.ControladorDePartida;
 import java.util.ArrayList;
 import model.send.EntidadePosicionavel;
  
@@ -13,7 +13,7 @@ import model.send.EntidadePosicionavel;
 public class Partida {
     
     // Controlador
-    private final ControladorPartida controlador;
+    private final ControladorDePartida controlador;
     
     // Game Stuff
     Arena arena;
@@ -23,7 +23,7 @@ public class Partida {
     ArrayList<Posicao> cobra2;
     ArrayList<Posicao> alimentos;
     
-    public Partida(Arena ar, ControladorPartida ctr) {
+    public Partida(Arena ar, ControladorDePartida ctr) {
         arena = ar;
         controlador = ctr;
         

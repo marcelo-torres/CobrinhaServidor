@@ -3,6 +3,8 @@ package stub;
 import Logger.Logger;
 import static Logger.Logger.Tipo.ERRO;
 import model.agentes.ControladorDePartida;
+import model.agentes.IJogador;
+import model.Jogador;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -12,15 +14,14 @@ import stub.comando.ComandoExibirMensagem;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
-import model.agentes.Jogador;
 
 public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
     
-    private final Jogador JOGADOR;
+    private final IJogador JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
     private final GerenciadorDeConexaoUDPRemota GERENCIADOR_CONEXAO_UDP;
     
-    public GerenciadorDeCliente(Jogador jogador, Socket socket) {
+    public GerenciadorDeCliente(IJogador jogador, Socket socket) {
         super(Comunicador.Modo.SERVIDOR,
                 socket.getInetAddress(),
                 socket.getPort());
