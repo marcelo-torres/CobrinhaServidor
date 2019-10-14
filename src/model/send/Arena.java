@@ -1,4 +1,4 @@
-package aplicacao.model.send;
+package model.send;
 
 import java.io.Serializable;
 import java.util.ArrayList;

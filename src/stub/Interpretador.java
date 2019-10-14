@@ -1,6 +1,6 @@
 package stub;
 
-import aplicacao.model.send.Arena;
+import model.send.Arena;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

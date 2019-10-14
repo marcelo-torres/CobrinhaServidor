@@ -1,6 +1,6 @@
 package stub.comando.controlador_de_partida;
 
-import aplicacao.model.agentes.ControladorDePartida;
+import model.agentes.ControladorDePartida;
 import stub.comando.Comando;
 
 public abstract class ComandoControladorDePartida extends Comando {

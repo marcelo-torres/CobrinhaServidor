@@ -1,6 +1,6 @@
 package stub.comando.jogador;
 
-import aplicacao.model.agentes.Jogador;
+import model.agentes.Jogador;
 
 public class EncerrarPartida extends ComandoJogador {
     

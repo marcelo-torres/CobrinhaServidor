@@ -1,4 +1,4 @@
-package aplicacao.model;
+package model;
 
 /**
  * Uma exception cujo conteudo textual pode ser exibido para o usuario.

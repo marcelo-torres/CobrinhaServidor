@@ -1,7 +1,7 @@
-package aplicacao.controller;
+package controller;
 
-import aplicacao.model.Jogador;
-import aplicacao.model.send.Arena;
+import model.Jogador;
+import model.send.Arena;
 
 public class ControladorGeral {
     public void enviarQuadro(Jogador j1, Jogador j2, Arena arena){

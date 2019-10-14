@@ -1,6 +1,6 @@
 package stub.comando.controlador_de_partida;
 
-import aplicacao.model.agentes.ControladorDePartida;
+import model.agentes.ControladorDePartida;
 
 public class Logar extends ComandoControladorDePartida {
     
