@@ -8,11 +8,11 @@ public interface Jogador extends Closeable  {
     public void desistirDeProcurarPartida();
     public void encerrarPartida();
     
-    
     public void andarParaCima();
     public void andarParaBaixo();
     public void andarParaEsquerda();
     public void andarParaDireita();
+    
     
     @Override
     public void close();

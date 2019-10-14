@@ -3,7 +3,6 @@ package stub;
 import Logger.Logger;
 import static Logger.Logger.Tipo.ERRO;
 import model.agentes.ControladorDePartida;
-import model.agentes.Jogador;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -13,6 +12,7 @@ import stub.comando.ComandoExibirMensagem;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
+import model.agentes.Jogador;
 
 public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
     

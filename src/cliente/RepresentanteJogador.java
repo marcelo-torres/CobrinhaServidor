@@ -1,8 +1,8 @@
 package cliente;
 
-import model.agentes.Jogador;
 import java.net.Socket;
 import stub.GerenciadorDeCliente;
+import model.agentes.Jogador;
 
 
 public class RepresentanteJogador implements Runnable, Jogador {
