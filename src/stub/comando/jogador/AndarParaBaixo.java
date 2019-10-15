@@ -1,6 +1,7 @@
 package stub.comando.jogador;
 
 import model.agentes.IJogador;
+import stub.comando.Parametros;
 
 public class AndarParaBaixo extends ComandoJogador {
     
@@ -9,12 +10,7 @@ public class AndarParaBaixo extends ComandoJogador {
     }
 
     @Override
-    public void executar() {
+    public void executar(Parametros parametros) {
         super.JOGADOR.andarParaBaixo();
-    }
-
-    @Override
-    public void definirParametros(String... parametros) {
-       throw new UnsupportedOperationException("Nenhum parametro necessario");
     }
 }

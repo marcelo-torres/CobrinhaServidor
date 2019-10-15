@@ -1,6 +1,7 @@
 package stub.comando.jogador;
 
 import model.agentes.IJogador;
+import stub.comando.Parametros;
 
 public class EncerrarPartida extends ComandoJogador {
     
@@ -9,12 +10,7 @@ public class EncerrarPartida extends ComandoJogador {
     }
 
     @Override
-    public void executar() {
+    public void executar(Parametros parametros) {
         super.JOGADOR.encerrarPartida();
-    }
-    
-    @Override
-    public void definirParametros(String... parametros) {
-       throw new UnsupportedOperationException("Nenhum parametro necessario");
     }
 }

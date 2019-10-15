@@ -1,6 +1,7 @@
 package stub.comando.gerenciador_de_udp;
 
 import stub.Stub;
+import stub.comando.Parametros;
 
 
 public class FecharConexaoUDP extends ComandoGerenciadorDePartida {
@@ -10,12 +11,7 @@ public class FecharConexaoUDP extends ComandoGerenciadorDePartida {
     }
     
     @Override
-    public void executar() {
+    public void executar(Parametros parametros) {
         super.GERENCIADOR.fecharConexaoUDP();
-    }
-
-    @Override
-    public void definirParametros(String... parametros) {
-       throw new UnsupportedOperationException("Nenhum parametro necessario");
     }
 }

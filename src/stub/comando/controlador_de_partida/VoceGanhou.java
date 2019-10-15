@@ -1,6 +1,7 @@
 package stub.comando.controlador_de_partida;
 
 import model.agentes.ControladorDePartida;
+import stub.comando.Parametros;
 
 public class VoceGanhou extends ComandoControladorDePartida {
     
@@ -9,12 +10,7 @@ public class VoceGanhou extends ComandoControladorDePartida {
     }
     
     @Override
-    public void executar() {
+    public void executar(Parametros parametros) {
         super.CONTROLADOR_PARTIDA.voceGanhou();
-    }
-    
-    @Override
-    public void definirParametros(String... parametros) {
-       throw new UnsupportedOperationException("Nenhum parametro necessario");
     }
 }

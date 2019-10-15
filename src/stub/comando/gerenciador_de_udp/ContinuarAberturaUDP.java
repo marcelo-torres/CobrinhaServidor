@@ -1,6 +1,7 @@
 package stub.comando.gerenciador_de_udp;
 
 import stub.Stub;
+import stub.comando.Parametros;
 
 public class ContinuarAberturaUDP extends ComandoGerenciadorDePartida {
     
@@ -11,16 +12,8 @@ public class ContinuarAberturaUDP extends ComandoGerenciadorDePartida {
     }
     
     @Override
-    public void executar() {
-        if(this.portaUDPServidor == null) {
-            throw new RuntimeException("Nao eh possivel executar o comando: numero da porta nao definido");
-        }
-        super.GERENCIADOR.continuarAberturaUDP(this.portaUDPServidor);
-    }
-    
-    @Override
-    public void definirParametros(String... parametros) {
-        String parametro1 = parametros[0];
-        this.portaUDPServidor = Integer.valueOf(parametro1); 
+    public void executar(Parametros parametros) {
+        ContinuarAberturaUDPParametros continuarAberturaUDPParametros = (ContinuarAberturaUDPParametros) parametros;
+        super.GERENCIADOR.continuarAberturaUDP(continuarAberturaUDPParametros.getPortaUDPServidor());
     }
 }
