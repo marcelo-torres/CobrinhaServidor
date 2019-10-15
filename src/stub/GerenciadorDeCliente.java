@@ -110,6 +110,10 @@ public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
         listaDeComandos.add(new EncerrarPartida("encerrarPartida", this.JOGADOR));
         listaDeComandos.add(new IniciarPartida("iniciarPartida", this.JOGADOR));
         
+        listaDeComandos.add(new GetVD("getVD", this.JOGADOR));
+        listaDeComandos.add(new GetLocalAtual("getLocalAtual", this.JOGADOR));
+        listaDeComandos.add(new SetLocalAtual("setLocalAtual", this.JOGADOR));
+        
         return listaDeComandos;
     }
 }

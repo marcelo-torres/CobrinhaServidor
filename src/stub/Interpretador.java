@@ -11,13 +11,10 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedList;
+import localizacoes.ILocal;
 import model.send.Arena;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import stub.comando.Comando;
 
-import com.google.gson.*;
-import stub.comando.ComandoExibirMensagem;
 import stub.comando.ComandoExibirMensagemParametros;
 import stub.comando.Parametros;
 import stub.comando.controlador_de_partida.EntregarQuadroParametro;
@@ -25,6 +22,7 @@ import stub.comando.controlador_de_partida.FalhaAoLogarParametros;
 import stub.comando.controlador_de_partida.LogarParametros;
 import stub.comando.gerenciador_de_udp.AtenderPedidoInicioDeAberturaUDPParametros;
 import stub.comando.gerenciador_de_udp.ContinuarAberturaUDPParametros;
+import stub.comando.jogador.SetLocalAtualParametros;
 
 /**
  * Realiza o trabalho de interpretar mensagens recebidas no formato de vetor de
@@ -65,12 +63,6 @@ public class Interpretador {
     
     private byte[] empacotarChamadaDeMetodo(String metodo, Parametros parametros) {
         PacoteDeChamaRemota pacote = new PacoteDeChamaRemota(metodo, parametros);
-        
-        //Gson gson = new Gson();
-        //String json = gson.toJson(pacote);
-        
-        //return json.getBytes();
-        
         return this.converterParaBytes(pacote);
     }
     
@@ -114,12 +106,7 @@ public class Interpretador {
      * 
      * @param mensagem Mensagem a ser interpretada
      */
-    public void interpretar(byte[] mensagem) {
-        //String mensagemTextual = new String(mensagem, this.CHARSET_PADRAO);
-        
-        //Gson gson = new Gson();
-        //PacoteDeChamaRemota pacoteDeChamadaRemota = gson.fromJson(mensagemTextual, PacoteDeChamaRemota.class);
-        
+    public void interpretar(byte[] mensagem) {        
         PacoteDeChamaRemota pacoteDeChamadaRemota = (PacoteDeChamaRemota) this.converterParaObjeto(mensagem);
         
         Comando comando = this.COMANDOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
@@ -129,15 +116,6 @@ public class Interpretador {
             throw new RuntimeException("Comando com a chave " + pacoteDeChamadaRemota.getNomeDoMetodo() + " nao encontrado");
         }
     }
-    
-    /*private String[] extrairParametros(JSONArray JSONArray) {
-        String[] vetor = new String[JSONArray.length()];
-        for (int i = 0; i < JSONArray.length(); i++) {
-            vetor[i] = JSONArray.get(i).toString();
-        }
-        
-        return vetor;
-    }*/
     
     
     /* ###################################################################### */
@@ -212,6 +190,23 @@ public class Interpretador {
     
     public byte[] codificarIniciarPartida() {
         byte[] mensagem = this.empacotarChamadaDeMetodo("iniciarPartida");
+        return mensagem;
+    }
+    
+    public byte[] codificarGetVD() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("getVD");
+        return mensagem;
+    }
+    
+    public byte[] codificarSetLocalAtual(ILocal local) {
+        SetLocalAtualParametros parametros = new SetLocalAtualParametros();
+        parametros.setLocal(local);
+        byte[] mensagem = this.empacotarChamadaDeMetodo("setLocalAtual", parametros);
+        return mensagem;
+    }
+    
+    public byte[] codificarGetLocalAtual() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("getLocalAtual");
         return mensagem;
     }
     
