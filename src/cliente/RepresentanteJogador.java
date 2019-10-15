@@ -2,8 +2,8 @@ package cliente;
 
 import model.agentes.IJogador;
 import java.net.Socket;
-import localizacoes.Local;
 import stub.GerenciadorDeCliente;
+import localizacoes.ILocal;
 
 
 public class RepresentanteJogador implements Runnable,  IJogador {
@@ -72,12 +72,12 @@ public class RepresentanteJogador implements Runnable,  IJogador {
     }
 
     @Override
-    public Local getLocalAtual() {
+    public ILocal getLocalAtual() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void setLocalAtual(Local local) {
+    public void setLocalAtual(ILocal local) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -1,4 +1,4 @@
 package localizacoes;
-public class Hall implements Local{
+public class Hall implements ILocal{
 
 }

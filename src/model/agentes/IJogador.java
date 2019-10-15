@@ -1,7 +1,7 @@
 package model.agentes;
 
 import java.io.Closeable;
-import localizacoes.Local;
+import localizacoes.ILocal;
 
 public interface IJogador extends Closeable  {
     
@@ -16,9 +16,9 @@ public interface IJogador extends Closeable  {
     
     public double getVD();
     
-    public Local getLocalAtual();
+    public ILocal getLocalAtual();
 	
-    public void setLocalAtual(Local local);
+    public void setLocalAtual(ILocal local);
 	
     
     @Override

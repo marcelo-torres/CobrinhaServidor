@@ -1,7 +1,7 @@
 package model;
 
-import localizacoes.Local;
 import model.agentes.IJogador;
+import localizacoes.ILocal;
 
 
 public class Jogador implements IJogador {
@@ -18,13 +18,13 @@ public class Jogador implements IJogador {
     public double getVD(){
         return 0.0;
     }
-    public Local getLocalAtual() {
+    public ILocal getLocalAtual() {
             return null;
     }
 
 
 
-    public void setLocalAtual(Local local) {
+    public void setLocalAtual(ILocal local) {
 
     }
 
