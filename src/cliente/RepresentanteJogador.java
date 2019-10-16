@@ -18,10 +18,7 @@ public class RepresentanteJogador implements Runnable,  IJogador {
         this.GerenciadorDeCliente = new GerenciadorDeCliente(this, socket);
     }
 
-    @Override
-    public void close() {
-    
-    }
+
     
 
     private void pausar(int tempo) {
@@ -33,18 +30,21 @@ public class RepresentanteJogador implements Runnable,  IJogador {
     }
 
     @Override
-    public void iniciarPartida() {
+    public boolean iniciarPartida() {
         System.out.println("    === TESTE SERVIDOR === Chamada recebida do cliente: iniciarPartida");
+        return true;
     }
 
     @Override
-    public void desistirDeProcurarPartida() {
+    public boolean desistirDeProcurarPartida() {
         System.out.println("    === TESTE SERVIDOR === Chamada recebida do cliente: desistirDeProcurarPartida");
+        return true;
     }
 
     @Override
-    public void encerrarPartida() {
+    public boolean encerrarPartida() {
         System.out.println("    === TESTE SERVIDOR === Chamada recebida do cliente: encerrarPartida");
+        return true;
     }
 
     
@@ -75,25 +75,14 @@ public class RepresentanteJogador implements Runnable,  IJogador {
         return valor;
     }
 
-    @Override
-    public ILocal getLocalAtual() {
-        ILocal valor = new Hall();
-        System.out.println("    === TESTE SERVIDOR === Chamada recebida do cliente: getLocalAtual -> retornando o local: " + valor);
-        return valor;
-    }
 
-    @Override
-    public void setLocalAtual(ILocal local) {
-        System.out.println("    === TESTE SERVIDOR === Chamada recebida do cliente: setLocalAtual -> recebendo o local: " + local);
-    }
 
     @Override
     public void run() {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        
-        
-        GerenciadorDeCliente.voceGanhou();
-        GerenciadorDeCliente.vocerPerdeu();
+
+        GerenciadorDeCliente.ganhou();
+        GerenciadorDeCliente.perdeu();
         
         GerenciadorDeCliente.adversarioSaiu();
         GerenciadorDeCliente.irParaOHall();

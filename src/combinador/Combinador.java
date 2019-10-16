@@ -17,7 +17,6 @@ public class Combinador implements Runnable {
 	private boolean rodando = true;
 	private Semaphore bloqueioContador = new Semaphore(1);
 	
-
 	private ControladorGeral cg; //confirmar o tipo depois
 	
 	public Combinador(ControladorGeral controladorGeral, int tempoDeEsperaPorCicloEmMS) {
@@ -52,7 +51,7 @@ public class Combinador implements Runnable {
 		this.rodando = false;
 	}
 	
-	public void renovaSemaforo() {
+	private void renovaSemaforo() {
 		try {
 			
 			bloqueioContador.acquire();
@@ -106,9 +105,12 @@ public class Combinador implements Runnable {
 		
 	}
 	
-	public void inserir(IJogador jogador) {
+	public boolean inserir(IJogador jogador) {
 		estrutura.inserir(jogador);
+                
 		incrementaQuant();
+                
+                return true;
 	}
 	
 	public boolean remover(IJogador jogador) {

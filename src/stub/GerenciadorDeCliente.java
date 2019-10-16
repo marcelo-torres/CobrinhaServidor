@@ -10,12 +10,13 @@ import java.util.LinkedList;
 import model.send.Arena;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
+import controller.ControladorGeralJogador;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
 import stub.comunicacao.FilaMonitorada;
 
-public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
+public class GerenciadorDeCliente extends Stub implements ControladorGeralJogador {
     
     private final IJogador JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
@@ -48,15 +49,25 @@ public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
     /* ########################### CHAMADAS DE RPC ########################## */
 
     @Override
-    public void vocerPerdeu() {
+    public void perdeu() {
         byte[] mensagem = this.INTERPRETADOR.codificarVocerPerdeu();
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
 
     @Override
-    public void voceGanhou() {
+    public void ganhou() {
         byte[] mensagem = this.INTERPRETADOR.codificarVoceGanhou();
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
+    @Override
+    public void empatou() {
+        /*
+        byte[] mensagem = this.INTERPRETADOR.codificarVoceGanhou();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+        */
+        
+        //Marcelo resolve este metodo aqui
     }
 
     @Override
@@ -90,6 +101,11 @@ public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
     }
     
     @Override
+    protected void devolverRetorno(byte[] mensagemRetorno) {
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagemRetorno);
+    }
+    
+    @Override
     protected LinkedList<Comando> criarComandosNecessarios() {
         
         LinkedList<Comando> listaDeComandos = new LinkedList<>();
@@ -110,14 +126,15 @@ public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
         listaDeComandos.add(new IniciarPartida("iniciarPartida", this.JOGADOR));
         
         listaDeComandos.add(new GetVD("getVD", this.JOGADOR));
+        /*
         listaDeComandos.add(new GetLocalAtual("getLocalAtual", this.JOGADOR));
         listaDeComandos.add(new SetLocalAtual("setLocalAtual", this.JOGADOR));
-        
+        */
         return listaDeComandos;
     }
     
-    @Override
-    protected void devolverRetorno(byte[] mensagemRetorno) {
-        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagemRetorno);
-    }
+
+
+
+
 }
