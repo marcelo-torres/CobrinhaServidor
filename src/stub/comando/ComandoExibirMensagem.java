@@ -2,8 +2,13 @@ package stub.comando;
 
 public class ComandoExibirMensagem extends Comando {
     
+    /**
+     * CLASSE DE DEBUG
+     * @param codigo 
+     */
+    
     public ComandoExibirMensagem(String codigo) {
-        super(codigo);
+        super(codigo, false);
     }
 
     private String mensagem;

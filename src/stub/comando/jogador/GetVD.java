@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class GetVD extends ComandoJogador{
    
     public GetVD(String codigo, IJogador jogador) {
-        super(codigo, jogador);
+        super(codigo, true, jogador);
     }
 
     @Override

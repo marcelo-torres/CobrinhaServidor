@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class IniciarPartida extends ComandoJogador {
     
     public IniciarPartida(String codigo, IJogador jogador) {
-        super(codigo, jogador);
+        super(codigo, false, jogador);
     }
 
     @Override

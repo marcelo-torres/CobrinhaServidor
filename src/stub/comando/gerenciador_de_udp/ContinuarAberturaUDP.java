@@ -5,10 +5,8 @@ import stub.comando.Parametros;
 
 public class ContinuarAberturaUDP extends ComandoGerenciadorDePartida {
     
-    private Integer portaUDPServidor = null;
-    
     public ContinuarAberturaUDP(String codigo, Stub.GerenciadorDeConexaoUDPRemota gerenciador) {
-        super(codigo, gerenciador);
+        super(codigo, false, gerenciador);
     }
     
     @Override

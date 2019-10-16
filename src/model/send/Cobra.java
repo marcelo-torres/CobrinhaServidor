@@ -1,6 +1,12 @@
 package model.send;
 
-public class Cobra extends EntidadePosicionavel{
+import java.io.Serializable;
+
+public class Cobra extends EntidadePosicionavel implements Serializable{
+    
+    public Cobra() {
+    
+    }
     
     public Cobra(char pos, int altura, int largura, int tamanho){
         if(pos == 'e'){

@@ -7,8 +7,8 @@ public abstract class ComandoGerenciadorDePartida extends Comando {
     
     protected final GerenciadorDeConexaoUDPRemota GERENCIADOR;
     
-    public ComandoGerenciadorDePartida(String codigo, GerenciadorDeConexaoUDPRemota gerenciador) {
-        super(codigo);
+    public ComandoGerenciadorDePartida(String codigo, boolean possuiParametros, GerenciadorDeConexaoUDPRemota gerenciador) {
+        super(codigo, possuiParametros);
         
         this.GERENCIADOR = gerenciador;
     }

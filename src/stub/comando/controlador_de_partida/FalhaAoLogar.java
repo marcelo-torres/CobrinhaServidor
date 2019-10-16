@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class FalhaAoLogar extends ComandoControladorDePartida {
     
     public FalhaAoLogar(String codigo, ControladorDePartida controladorPartida) {
-        super(codigo, controladorPartida);
+        super(codigo, false, controladorPartida);
     }
     
     @Override

@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class VoceGanhou extends ComandoControladorDePartida {
     
     public VoceGanhou(String codigo, ControladorDePartida controladorPartida) {
-        super(codigo, controladorPartida);
+        super(codigo, false, controladorPartida);
     }
     
     @Override

@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class EntregarQuadroComando extends ComandoControladorDePartida {
 
     public EntregarQuadroComando(String codigo, ControladorDePartida controladorPartida) {
-        super(codigo, controladorPartida);
+        super(codigo, false, controladorPartida);
     }
     
     @Override

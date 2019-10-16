@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class AdversarioSaiu extends ComandoControladorDePartida {
 
     public AdversarioSaiu(String codigo, ControladorDePartida controladorPartida) {
-        super(codigo, controladorPartida);
+        super(codigo, false, controladorPartida);
     }
     
     @Override

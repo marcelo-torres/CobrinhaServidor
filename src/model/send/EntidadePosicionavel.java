@@ -1,9 +1,10 @@
 package model.send;
 
 import java.awt.Color;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class EntidadePosicionavel {
+public class EntidadePosicionavel implements Serializable {
     protected ArrayList<Integer[]> vertices = new ArrayList<>();
     protected Color cor;
     
@@ -28,6 +29,10 @@ public class EntidadePosicionavel {
             default:
                 break;
         }
+    }
+    
+    public void setCor(Color cor){
+        this.cor = cor;
     }
     
     public Color getCor(){

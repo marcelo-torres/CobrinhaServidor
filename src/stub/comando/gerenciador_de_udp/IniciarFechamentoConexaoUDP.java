@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class IniciarFechamentoConexaoUDP extends ComandoGerenciadorDePartida {
 
     public IniciarFechamentoConexaoUDP(String codigo, Stub.GerenciadorDeConexaoUDPRemota gerenciador) {
-        super(codigo, gerenciador);
+        super(codigo, false, gerenciador);
     }
     
     @Override

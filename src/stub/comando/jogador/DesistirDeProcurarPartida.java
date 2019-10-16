@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class DesistirDeProcurarPartida extends ComandoJogador {
     
     public DesistirDeProcurarPartida(String codigo, IJogador jogador) {
-        super(codigo, jogador);
+        super(codigo, false, jogador);
     }
 
     @Override

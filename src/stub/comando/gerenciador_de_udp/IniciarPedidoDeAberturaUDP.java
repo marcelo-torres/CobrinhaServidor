@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class IniciarPedidoDeAberturaUDP extends ComandoGerenciadorDePartida {
     
     public IniciarPedidoDeAberturaUDP(String codigo, Stub.GerenciadorDeConexaoUDPRemota gerenciador) {
-        super(codigo, gerenciador);
+        super(codigo, false, gerenciador);
     }
 
     @Override

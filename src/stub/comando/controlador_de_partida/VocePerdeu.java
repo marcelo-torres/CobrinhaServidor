@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class VocePerdeu extends ComandoControladorDePartida {
     
     public VocePerdeu(String codigo, ControladorDePartida controladorPartida) {
-        super(codigo, controladorPartida);
+        super(codigo, false, controladorPartida);
     }
     
     @Override

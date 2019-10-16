@@ -1,6 +1,8 @@
 package model.send;
 
-public class Alimento extends EntidadePosicionavel{
+import java.io.Serializable;
+
+public class Alimento extends EntidadePosicionavel implements Serializable {
     
     protected char tipo;
     

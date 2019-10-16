@@ -169,7 +169,7 @@ public class Interpretador {
             if(comando != null) {
                 Object retorno = comando.executar(pacoteDeChamadaRemota.getParametros());
                 
-                if(retorno != null) {
+                if(comando.getPossuiRetorno()) {
                     PacoteDeChamadaRemota pacote = PacoteDeChamadaRemota.criarPacoteDeRetorno(pacoteDeChamadaRemota.getNomeDoMetodo(), retorno);
                     byte[] mensagemRetorno = this.converterParaBytes(pacote);
                     this.STUB.devolverRetorno(mensagemRetorno);

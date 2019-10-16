@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class IrParaOHall extends ComandoControladorDePartida {
     
     public IrParaOHall(String codigo, ControladorDePartida controladorPartida) {
-        super(codigo, controladorPartida);
+        super(codigo, false, controladorPartida);
     }
     
     @Override

@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class Logar extends ComandoControladorDePartida {
     
     public Logar(String codigo, ControladorDePartida controladorPartida) {
-        super(codigo, controladorPartida);
+        super(codigo, false, controladorPartida);
     }
     
     @Override

@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class AndarParaEsquerda extends ComandoJogador {
     
     public AndarParaEsquerda(String codigo, IJogador jogador) {
-        super(codigo, jogador);
+        super(codigo, false, jogador);
     }
 
     @Override

@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class SetLocalAtual extends ComandoJogador {
  
     public SetLocalAtual(String codigo, IJogador jogador) {
-        super(codigo, jogador);
+        super(codigo, false, jogador);
     }
 
     @Override

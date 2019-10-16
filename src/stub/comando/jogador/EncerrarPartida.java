@@ -6,7 +6,7 @@ import stub.comando.Parametros;
 public class EncerrarPartida extends ComandoJogador {
     
     public EncerrarPartida(String codigo, IJogador jogador) {
-        super(codigo, jogador);
+        super(codigo, false, jogador);
     }
 
     @Override
