@@ -23,6 +23,7 @@ import stub.comando.controlador_de_partida.LogarParametros;
 import stub.comando.gerenciador_de_udp.AtenderPedidoInicioDeAberturaUDPParametros;
 import stub.comando.gerenciador_de_udp.ContinuarAberturaUDPParametros;
 import stub.comando.jogador.SetLocalAtualParametros;
+import stub.comunicacao.FilaMonitorada;
 
 /**
  * Realiza o trabalho de interpretar mensagens recebidas no formato de vetor de
@@ -35,25 +36,45 @@ import stub.comando.jogador.SetLocalAtualParametros;
  */
 public class Interpretador {
     
-    private final Charset CHARSET_PADRAO = Charset.forName("UTF-8");
+    private final HashMap<String, FilaMonitorada> FILA_RETORNOS = new HashMap<>();
     private final HashMap<String, Comando> COMANDOS = new HashMap<>();
     
-    private static class PacoteDeChamaRemota implements Serializable {
+    private static class PacoteDeChamadaRemota implements Serializable {
     
-        private String nomeDoMetodo;
-        private Parametros parametros;
+        public static enum Tipo {
+            CHAMADA, RETORNO;
+        }
         
-        public PacoteDeChamaRemota(String nomeDoMetodo, Parametros parametros) {
-            this.nomeDoMetodo = nomeDoMetodo;
-            this.parametros = parametros;
+        public static PacoteDeChamadaRemota criarPacoteDeChamada(String nomeDoMetodo, Parametros parametros) {
+            return new PacoteDeChamadaRemota(Tipo.CHAMADA, nomeDoMetodo, parametros, null);
+        }
+        
+        public static PacoteDeChamadaRemota criarPacoteDeRetorno(String nomeDoMetodo, Object retorno) {
+            return new PacoteDeChamadaRemota(Tipo.RETORNO, nomeDoMetodo, null, retorno);
+        }
+        
+        private final Tipo TIPO;
+        private final String NOME_DO_METODO;
+        private final Parametros PARAMETROS;
+        private final Object RETORNO;
+        
+        public PacoteDeChamadaRemota(Tipo tipo, String nomeDoMetodo, Parametros parametros, Object retorno) {
+            this.TIPO = tipo;
+            this.NOME_DO_METODO = nomeDoMetodo;
+            this.PARAMETROS = parametros;
+            this.RETORNO = retorno;
         }
         
         public String getNomeDoMetodo() {
-            return this.nomeDoMetodo;
+            return this.NOME_DO_METODO;
         }
         
         public Parametros getParametros() {
-            return this.parametros;
+            return this.PARAMETROS;
+        }
+        
+        public Object getRetorno() {
+            return this.RETORNO;
         }
     }
     
@@ -62,9 +83,11 @@ public class Interpretador {
     }
     
     private byte[] empacotarChamadaDeMetodo(String metodo, Parametros parametros) {
-        PacoteDeChamaRemota pacote = new PacoteDeChamaRemota(metodo, parametros);
+        PacoteDeChamadaRemota pacote = PacoteDeChamadaRemota.criarPacoteDeChamada(metodo, parametros);
         return this.converterParaBytes(pacote);
     }
+    
+    
     
     /**
      * Registra uma lista de comandos em uma estrutura interna. Quando o
@@ -107,7 +130,7 @@ public class Interpretador {
      * @param mensagem Mensagem a ser interpretada
      */
     public void interpretar(byte[] mensagem) {        
-        PacoteDeChamaRemota pacoteDeChamadaRemota = (PacoteDeChamaRemota) this.converterParaObjeto(mensagem);
+        PacoteDeChamadaRemota pacoteDeChamadaRemota = (PacoteDeChamadaRemota) this.converterParaObjeto(mensagem);
         
         Comando comando = this.COMANDOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
         if(comando != null) {

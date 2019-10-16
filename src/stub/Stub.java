@@ -41,7 +41,7 @@ public abstract class Stub implements Closeable {
     
     public abstract void receberMensagem(byte[] mensagem);
     
-    protected abstract LinkedList<Comando> criarComandosNecessarios();
+    protected abstract LinkedList<Comando> criarComandosNecessarios(); 
     
     protected void iniciar(Socket socket) {
         try {
