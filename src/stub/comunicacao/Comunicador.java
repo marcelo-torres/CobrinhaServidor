@@ -56,10 +56,12 @@ public abstract class Comunicador {
      */
     protected static class MensagemComunicador implements Serializable {
         
+        private long numeroDeSequencia;
         private final TipoMensagem TIPO_MENSAGEM;
         private final byte[] CONTEUDO;
         
-        public MensagemComunicador(TipoMensagem tipoMensagem, byte[] conteudo) {
+        public MensagemComunicador(long numeroDeSequencia, TipoMensagem tipoMensagem, byte[] conteudo) {
+            this.numeroDeSequencia = numeroDeSequencia;
             this.TIPO_MENSAGEM = tipoMensagem;
             this.CONTEUDO = conteudo;
         }
@@ -70,6 +72,10 @@ public abstract class Comunicador {
         
         public byte[] getConteudo() {
             return this.CONTEUDO;
+        }
+        
+        public long getNumeroDeSequencia() {
+            return this.numeroDeSequencia;
         }
     }
     
@@ -123,12 +129,15 @@ public abstract class Comunicador {
      */
     protected static class TarefaEnviarKeepAlive extends TimerTask {
     
+        private final Comunicador COMUNICADOR;
         private final UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
         private final SynchronizedObjectOutputStreamWrapper WRAPPED_OUTPUT;
 ;        
         public TarefaEnviarKeepAlive(
+                Comunicador comunicador,
                 SynchronizedObjectOutputStreamWrapper wrappedOutput,
                 UncaughtExceptionHandler gerenciadorDeException) {
+            this.COMUNICADOR = comunicador;
             this.WRAPPED_OUTPUT = wrappedOutput;
             this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
         }
@@ -136,7 +145,7 @@ public abstract class Comunicador {
         @Override
         public void run() {
             try {
-                MensagemComunicador mensagemKeepAlive = new MensagemComunicador(TipoMensagem.KEEP_ALIVE, null);
+                MensagemComunicador mensagemKeepAlive = new MensagemComunicador(this.COMUNICADOR.incrementarEObterNumeroDeSequenciaDeEnvio(), TipoMensagem.KEEP_ALIVE, null);
                 this.WRAPPED_OUTPUT.writeAndFlush(mensagemKeepAlive);
             } catch(IOException ioe) {
                 FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel mandar a mensagem de keep alive: " + ioe.getMessage(), ioe);
@@ -153,6 +162,7 @@ public abstract class Comunicador {
      */
     protected static class EnviadorKeepAlive {
     
+        private final Comunicador COMUNICADOR;
         private final UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
         private final SynchronizedObjectOutputStreamWrapper WRAPPED_OUTPUT;
         private final int INTERVALO_ENVIO;
@@ -161,6 +171,7 @@ public abstract class Comunicador {
         private ScheduledFuture tarefasRestantes;
         
         public EnviadorKeepAlive(
+            Comunicador comunicador,
             UncaughtExceptionHandler gerenciadorDeException,
             SynchronizedObjectOutputStreamWrapper wrappedOutput,
             int quantidadeDeMensagens,
@@ -168,6 +179,7 @@ public abstract class Comunicador {
         
             this.validarParametros(gerenciadorDeException, wrappedOutput, quantidadeDeMensagens, intervaloDeTempo);
             
+            this.COMUNICADOR = comunicador;
             this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
             this.WRAPPED_OUTPUT = wrappedOutput;
             this.INTERVALO_ENVIO = (intervaloDeTempo / quantidadeDeMensagens);
@@ -182,7 +194,7 @@ public abstract class Comunicador {
             
             long delayInicial = 0;
             this.tarefasRestantes = this.scheduler.scheduleAtFixedRate(
-                    new TarefaEnviarKeepAlive(this.WRAPPED_OUTPUT, GERENCIADOR_DE_EXCEPTION),
+                    new TarefaEnviarKeepAlive(this.COMUNICADOR, this.WRAPPED_OUTPUT, GERENCIADOR_DE_EXCEPTION),
                     delayInicial,
                     this.INTERVALO_ENVIO,
                     TimeUnit.MILLISECONDS);
@@ -308,6 +320,8 @@ public abstract class Comunicador {
     protected final Modo MODO;
     protected final Mensageiro MENSAGEIRO;
     protected boolean estaAberto = false;
+
+    private long numeroDeSequenciaDeEnvio = 0;
     
     public Comunicador(Modo modo, Mensageiro mensageiro) {
         this.MODO = modo;
@@ -318,5 +332,20 @@ public abstract class Comunicador {
     
     public boolean estaAberto() {
         return this.estaAberto;
+    }
+    
+    public void zerarNumeroDeSequenciaDeEnvio() {
+        this.numeroDeSequenciaDeEnvio = 0;
+    }
+    
+    public long getNumeroDeSequenciaDeEnvio() {
+        return this.numeroDeSequenciaDeEnvio;
+    }
+    
+    public long incrementarEObterNumeroDeSequenciaDeEnvio() {
+        synchronized(this) {
+            this.numeroDeSequenciaDeEnvio++;
+            return this.numeroDeSequenciaDeEnvio;
+        }
     }
 }
