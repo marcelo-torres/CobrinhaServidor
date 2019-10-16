@@ -9,9 +9,10 @@ public class ComandoExibirMensagem extends Comando {
     private String mensagem;
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         ComandoExibirMensagemParametros comandoExibirMensagemParametros = (ComandoExibirMensagemParametros) parametros;
         this.mensagem = comandoExibirMensagemParametros.getMensagem();
         System.out.println("PADRAO COMANDO EXIBE MENSAGEM REMOTA: " + mensagem);
+        return null;
     }
 }

@@ -10,7 +10,7 @@ public class GetLocalAtual extends ComandoJogador {
     }
 
     @Override
-    public void executar(Parametros parametros) {
-        super.JOGADOR.getLocalAtual();
+    public Object executar(Parametros parametros) {
+        return super.JOGADOR.getLocalAtual();
     }
 }

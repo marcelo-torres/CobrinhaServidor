@@ -8,7 +8,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedList;
 import localizacoes.ILocal;
@@ -39,10 +38,22 @@ public class Interpretador {
     private final HashMap<String, FilaMonitorada> FILA_RETORNOS = new HashMap<>();
     private final HashMap<String, Comando> COMANDOS = new HashMap<>();
     
+    private final Stub STUB;
+    
+    public Interpretador(Stub stub) {
+        this.STUB = stub;
+    }
+    
     private static class PacoteDeChamadaRemota implements Serializable {
     
         public static enum Tipo {
-            CHAMADA, RETORNO;
+            CHAMADA(1),
+            RETORNO(2);
+            
+            private int COD;
+            private Tipo(int codigo) {
+                this.COD = codigo;
+            }
         }
         
         public static PacoteDeChamadaRemota criarPacoteDeChamada(String nomeDoMetodo, Parametros parametros) {
@@ -63,6 +74,10 @@ public class Interpretador {
             this.NOME_DO_METODO = nomeDoMetodo;
             this.PARAMETROS = parametros;
             this.RETORNO = retorno;
+        }
+        
+        public Tipo getTipo() {
+            return this.TIPO;
         }
         
         public String getNomeDoMetodo() {
@@ -121,6 +136,15 @@ public class Interpretador {
         this.COMANDOS.put(comando.getCodigo(), comando);
     }
     
+    public void cadastrarFilaDeRetorno(String nomeMetodo, FilaMonitorada filaDeRetorno) {
+        FilaMonitorada filaEncontrada = this.FILA_RETORNOS.get(nomeMetodo);
+        if(filaEncontrada == null) {
+            this.FILA_RETORNOS.put(nomeMetodo, filaDeRetorno);
+        } else {
+            throw new IllegalArgumentException("Ja existe uma fila pde retorno para o metodo " + nomeMetodo);
+        }
+    }
+    
     /**
      * Transforma uma mensagem em uma String UTF-8 que esta no formato JSON,
      * entao interpreta o nome do metodo a ser chamado e os paramentros e define
@@ -132,12 +156,48 @@ public class Interpretador {
     public void interpretar(byte[] mensagem) {        
         PacoteDeChamadaRemota pacoteDeChamadaRemota = (PacoteDeChamadaRemota) this.converterParaObjeto(mensagem);
         
-        Comando comando = this.COMANDOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
+        if(pacoteDeChamadaRemota.getTipo() == PacoteDeChamadaRemota.Tipo.RETORNO) {
+            FilaMonitorada fila = this.FILA_RETORNOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
+            if(fila != null) {
+                fila.adicionar(pacoteDeChamadaRemota.getRetorno());
+            } else {
+                throw new RuntimeException("Nao foi possivel encontrar a fila de retorno para o comando com a chave " + pacoteDeChamadaRemota.getNomeDoMetodo() + " nao encontrado");
+            }
+        } else if(pacoteDeChamadaRemota.getTipo() == PacoteDeChamadaRemota.Tipo.CHAMADA) {
+            Comando comando = this.COMANDOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
+            
+            if(comando != null) {
+                Object retorno = comando.executar(pacoteDeChamadaRemota.getParametros());
+                
+                if(retorno != null) {
+                    PacoteDeChamadaRemota pacote = PacoteDeChamadaRemota.criarPacoteDeRetorno(pacoteDeChamadaRemota.getNomeDoMetodo(), retorno);
+                    byte[] mensagemRetorno = this.converterParaBytes(pacote);
+                    this.STUB.devolverRetorno(mensagemRetorno);
+                }
+            } else {
+                throw new RuntimeException("Comando com a chave " + pacoteDeChamadaRemota.getNomeDoMetodo() + " nao encontrado");
+            }
+        }
+        
+        /*Comando comando = this.COMANDOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
         if(comando != null) {
-            comando.executar(pacoteDeChamadaRemota.getParametros());
+            Object retorno = comando.executar(pacoteDeChamadaRemota.getParametros());
+            
+            if(pacoteDeChamadaRemota.getTipo() == PacoteDeChamadaRemota.Tipo.RETORNO) {
+                FilaMonitorada fila = this.FILA_RETORNOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
+                if(fila != null) {
+                    fila.adicionar(retorno);
+                } else {
+                    throw new RuntimeException("Nao foi possivel encontrar a fila de retorno para o comando com a chave " + pacoteDeChamadaRemota.getNomeDoMetodo() + " nao encontrado");
+                }
+            } else if(retorno != null) {
+                PacoteDeChamadaRemota pacote = PacoteDeChamadaRemota.criarPacoteDeRetorno(pacoteDeChamadaRemota.getNomeDoMetodo(), retorno);
+                byte[] mensagemRetorno = this.converterParaBytes(pacote);
+                this.STUB.devolverRetorno(mensagemRetorno);
+            }
         } else {
             throw new RuntimeException("Comando com a chave " + pacoteDeChamadaRemota.getNomeDoMetodo() + " nao encontrado");
-        }
+        }*/
     }
     
     
@@ -237,7 +297,7 @@ public class Interpretador {
     /* ################### COMANDO CONTROLADOR DE PARTIDA ################### */
     
     public byte[] codificarVocerPerdeu() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("vocerPerdeu");
+        byte[] mensagem = this.empacotarChamadaDeMetodo("vocePerdeu");
         return mensagem;
     }
 

@@ -10,7 +10,8 @@ public class AdversarioSaiu extends ComandoControladorDePartida {
     }
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         super.CONTROLADOR_PARTIDA.adversarioSaiu();
+        return null;
     }
 }

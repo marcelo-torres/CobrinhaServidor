@@ -21,7 +21,7 @@ public abstract class Stub implements Closeable {
     
     private final GerenciadorDeException GERENCIADOR_DE_EXCEPTION;
     protected final Mensageiro MENSAGEIRO;
-    protected final Interpretador INTERPRETADOR = new Interpretador();
+    protected final Interpretador INTERPRETADOR = new Interpretador(this);
     
     private Receptor receptor;
     private Thread threadDeRecepcao;
@@ -42,6 +42,8 @@ public abstract class Stub implements Closeable {
     public abstract void receberMensagem(byte[] mensagem);
     
     protected abstract LinkedList<Comando> criarComandosNecessarios(); 
+    
+    protected abstract void devolverRetorno(byte[] mensagemRetorno);
     
     protected void iniciar(Socket socket) {
         try {

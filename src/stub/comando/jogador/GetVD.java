@@ -10,8 +10,8 @@ public class GetVD extends ComandoJogador{
     }
 
     @Override
-    public void executar(Parametros parametros) {
-        super.JOGADOR.getVD();
+    public Object executar(Parametros parametros) {
+        return super.JOGADOR.getVD();
     }
     
 }

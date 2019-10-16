@@ -10,9 +10,10 @@ public class EntregarQuadroComando extends ComandoControladorDePartida {
     }
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         EntregarQuadroParametro entregarQuadroParametro = (EntregarQuadroParametro) parametros;
         this.CONTROLADOR_PARTIDA.entregarQuadro(entregarQuadroParametro.getArena());
+        return null;
     }
     
     

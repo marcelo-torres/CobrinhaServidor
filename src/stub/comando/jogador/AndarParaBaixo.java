@@ -10,7 +10,8 @@ public class AndarParaBaixo extends ComandoJogador {
     }
 
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         super.JOGADOR.andarParaBaixo();
+        return null;
     }
 }

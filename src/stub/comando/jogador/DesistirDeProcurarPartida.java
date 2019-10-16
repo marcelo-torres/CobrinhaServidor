@@ -10,7 +10,8 @@ public class DesistirDeProcurarPartida extends ComandoJogador {
     }
 
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         super.JOGADOR.desistirDeProcurarPartida();
+        return null;
     }
 }

@@ -10,8 +10,9 @@ public class Logar extends ComandoControladorDePartida {
     }
     
     @Override
-    public void executar(Parametros parametros) {
-         LogarParametros logarParametros = (LogarParametros) parametros;
+    public Object executar(Parametros parametros) {
+        LogarParametros logarParametros = (LogarParametros) parametros;
         super.CONTROLADOR_PARTIDA.logar(logarParametros.getLogin());
+        return null;
     }
 }

@@ -10,8 +10,9 @@ public class AtenderPedidoInicioDeAberturaUDP extends ComandoGerenciadorDePartid
     }
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         AtenderPedidoInicioDeAberturaUDPParametros atenderPedidoInicioDeAberturaUDPParametros = (AtenderPedidoInicioDeAberturaUDPParametros) parametros; 
         super.GERENCIADOR.atenderPedidoInicioDeAberturaUDP(atenderPedidoInicioDeAberturaUDPParametros.getPortaUDPServidor());
+        return null;
     }
 }

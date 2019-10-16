@@ -12,8 +12,9 @@ public class ContinuarAberturaUDP extends ComandoGerenciadorDePartida {
     }
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         ContinuarAberturaUDPParametros continuarAberturaUDPParametros = (ContinuarAberturaUDPParametros) parametros;
         super.GERENCIADOR.continuarAberturaUDP(continuarAberturaUDPParametros.getPortaUDPServidor());
+        return null;
     }
 }

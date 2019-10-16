@@ -10,8 +10,9 @@ public class SetLocalAtual extends ComandoJogador {
     }
 
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         SetLocalAtualParametros setLocalAtualParametros = (SetLocalAtualParametros) parametros;
         super.JOGADOR.setLocalAtual(setLocalAtualParametros.getLocal());
+        return null;
     }
 }

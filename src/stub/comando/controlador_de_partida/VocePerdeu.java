@@ -10,7 +10,8 @@ public class VocePerdeu extends ComandoControladorDePartida {
     }
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         super.CONTROLADOR_PARTIDA.vocerPerdeu();
+        return null;
     }
 }

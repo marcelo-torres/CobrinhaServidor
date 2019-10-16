@@ -10,7 +10,8 @@ public class IniciarFechamentoConexaoUDP extends ComandoGerenciadorDePartida {
     }
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         super.GERENCIADOR.iniciarFechamentoConexaoUDP();
+        return null;
     }
 }

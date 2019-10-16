@@ -1,4 +1,7 @@
 package localizacoes;
-public interface ILocal {
+
+import java.io.Serializable;
+
+public interface ILocal extends Serializable {
 
 }

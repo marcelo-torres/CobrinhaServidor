@@ -115,4 +115,9 @@ public class GerenciadorDeCliente extends Stub implements ControladorDePartida {
         
         return listaDeComandos;
     }
+    
+    @Override
+    protected void devolverRetorno(byte[] mensagemRetorno) {
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagemRetorno);
+    }
 }

@@ -10,8 +10,9 @@ public class FalhaAoLogar extends ComandoControladorDePartida {
     }
     
     @Override
-    public void executar(Parametros parametros) {
+    public Object executar(Parametros parametros) {
         FalhaAoLogarParametros falhaAoLogarParametros = (FalhaAoLogarParametros) parametros; 
         super.CONTROLADOR_PARTIDA.logar(falhaAoLogarParametros.getMensagem());
+        return null;
     }
 }
