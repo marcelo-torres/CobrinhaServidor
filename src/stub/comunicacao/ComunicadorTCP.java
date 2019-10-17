@@ -82,14 +82,17 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
      * acessada atraves de um objeto da classe Mensageiro
      */
     private static class Enviador extends ThreadEscrava implements Closeable {
-        
+       
+        private final Comunicador COMUNICADOR;
         private final SynchronizedObjectOutputStreamWrapper WRAPPED_OUTPUT;
         private final Mensageiro MENSAGEIRO;
         
         public Enviador(
+                Comunicador comunicador,
                 SynchronizedObjectOutputStreamWrapper enviadorTCP, 
                 Mensageiro mensageiro) {
             
+            this.COMUNICADOR = comunicador;
             this.WRAPPED_OUTPUT = enviadorTCP;
             this.MENSAGEIRO = mensageiro;
         }
@@ -101,7 +104,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
                 byte[] mensagem = this.MENSAGEIRO.removerFilaEnvioTCP();
                 if(mensagem != null) {
                     try {
-                        MensagemComunicador envelope = new MensagemComunicador(TipoMensagem.MENSAGEM_COMUM, mensagem);
+                        MensagemComunicador envelope = new MensagemComunicador(this.COMUNICADOR.incrementarEObterNumeroDeSequenciaDeEnvio(), TipoMensagem.MENSAGEM_COMUM, mensagem);
                         this.WRAPPED_OUTPUT.writeAndFlush(envelope);
                     } catch(IOException ioe) {
                         throw new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel enviar a mensagem: " + ioe.getMessage());
@@ -293,10 +296,10 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
         
         SynchronizedObjectOutputStreamWrapper enviadorTCP = new SynchronizedObjectOutputStreamWrapper(saida);
         
-        this.enviadorKeepAlive = new EnviadorKeepAlive(this.GERENCIADOR_DE_EXCEPTION, enviadorTCP, this.ENVIO_QUANTIDADE_MENSAGENS_KEEP_ALIVE, this.ENVIO_TEMPO_MS_LIMITE_KEEP_ALIVE);
+        this.enviadorKeepAlive = new EnviadorKeepAlive(this, this.GERENCIADOR_DE_EXCEPTION, enviadorTCP, this.ENVIO_QUANTIDADE_MENSAGENS_KEEP_ALIVE, this.ENVIO_TEMPO_MS_LIMITE_KEEP_ALIVE);
         this.controladorKeepAlive = new ControladorKeepAlive(this.GERENCIADOR_DE_EXCEPTION,this.RECEBIMENTO_TEMPO_MS_LIMITE_KEEP_ALIVE, this.RECEBIMENTO_QUANTIDADE_MENSAGENS_KEEP_ALIVE);
         
-        this.enviador = new Enviador(enviadorTCP, super.MENSAGEIRO);
+        this.enviador = new Enviador(this, enviadorTCP, super.MENSAGEIRO);
         this.receptor = new Receptor(entrada, super.MENSAGEIRO, this.controladorKeepAlive);
         
         this.threadEnviador = this.criarThread(this.enviador, "Receptor_TCP", GERENCIADOR_DE_EXCEPTION);

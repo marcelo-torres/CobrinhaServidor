@@ -2,9 +2,16 @@ package stub.comunicacao;
 
 import Logger.Logger;
 import static Logger.Logger.Tipo.INFO;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -23,6 +30,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
      */
     private static class Receptor extends ThreadEscrava { 
     
+        private long numeroDeSequencia = 0;
         private final DatagramSocket SOCKET;
         private final int TAMANHO_DA_MENSAGEM;
         private final Mensageiro MENSAGEIRO;
@@ -60,7 +68,12 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                     if(this.emExecucao()) {
                         byte[] dados = pacote.getData();
                         if(dados != null) {
-                            this.MENSAGEIRO.inserirFilaRecebimento(dados);
+                            MensagemComunicador mensagemComunicador = (MensagemComunicador) this.converterParaObjeto(dados);
+                            
+                            if(this.numeroDeSequencia <= mensagemComunicador.getNumeroDeSequencia()) {
+                                this.numeroDeSequencia = mensagemComunicador.getNumeroDeSequencia();
+                                this.MENSAGEIRO.inserirFilaRecebimento(mensagemComunicador.getConteudo());
+                            }
                         }
                     }
                 } catch(EOFException eofe) { 
@@ -68,6 +81,29 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                 } catch(IOException ioe) {
                     ioe.printStackTrace();
                     throw new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel receber a mensagem: " + ioe.getMessage());
+                }
+            }
+        }
+        
+        // Retirado de <https://stackoverflow.com/questions/2836646/java-serializable-object-to-byte-array>
+        public Object converterParaObjeto(byte[] bytes) {
+            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+            ObjectInput in = null;
+            try {
+                in = new ObjectInputStream(bis);
+                Object objeto = in.readObject();
+                return objeto;
+            } catch (IOException ioe) {
+                return null;
+            } catch (ClassNotFoundException cnfe) {
+                return null;
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+                } catch (IOException ex) {
+                    // ignore close exception
                 }
             }
         }
@@ -80,13 +116,17 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
      */
     private static class Enviador extends ThreadEscrava implements Runnable {
         
+        private final Comunicador COMUNICADOR;
         private final DatagramSocket SOCKET;
         private final Mensageiro MENSAGEIRO;
         
-        public Enviador(DatagramSocket socket,
+        public Enviador(
+                Comunicador comunicador,
+                DatagramSocket socket,
                 Mensageiro mensageiro) 
                 throws IOException {
             
+            this.COMUNICADOR = comunicador;
             this.SOCKET = socket;
             this.MENSAGEIRO = mensageiro;
         }
@@ -98,13 +138,36 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                 byte[] mensagem = this.MENSAGEIRO.removerFilaEnvioUDP();
                 if(mensagem != null) {
                     try {
+                        MensagemComunicador mensagemComunicador = new MensagemComunicador(this.COMUNICADOR.incrementarEObterNumeroDeSequenciaDeEnvio(), TipoMensagem.MENSAGEM_COMUM, mensagem);
+                        byte[] mensagemEnvio = this.converterParaBytes(mensagemComunicador);
                         DatagramPacket pacote = new DatagramPacket(
-                                                        mensagem,
-                                                        mensagem.length);     
+                                                        mensagemEnvio,
+                                                        mensagemEnvio.length);     
                         this.SOCKET.send(pacote);
                     } catch(IOException ioe) {
                         throw new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel enviar a mensagem: " + ioe.getMessage());
                     }
+                }
+            }
+        }
+        
+        // Retirado de <https://stackoverflow.com/questions/2836646/java-serializable-object-to-byte-array>
+        private byte[] converterParaBytes(Serializable objeto) {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutput out = null;
+            try {
+                out = new ObjectOutputStream(bos);
+                out.writeObject(objeto);
+                out.flush();
+                byte[] yourBytes = bos.toByteArray();
+                return yourBytes;
+            } catch (IOException ioe) {
+                return null;
+            } finally {
+                try {
+                    bos.close();
+                } catch (IOException ex) {
+                    // ignore close exception
                 }
             }
         }
@@ -226,7 +289,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
     
     private void prepararThreadsDeComunicacao() throws IOException {
         try {
-            this.enviador = new Enviador(this.socket, super.MENSAGEIRO);
+            this.enviador = new Enviador(this, this.socket, super.MENSAGEIRO);
             
             this.receptor = new Receptor(
                     this.socket, 
