@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import cliente.RepresentanteJogador;
 
 public class GerenciadorDeConexoes implements GerenciadorDeRequisicao {
-
+    
     @Override
     public void gerenciarRequisicao(Socket socket) {
         

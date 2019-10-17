@@ -78,5 +78,8 @@ public class Jogador implements IJogador {
         return localAtual;
     }
 	
+    public void oponenteDesistiu(){
+        controleJogador.adversarioSaiu();
+    }
     
 }
