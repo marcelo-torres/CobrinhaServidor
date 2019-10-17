@@ -1,17 +1,19 @@
 package controller;
 
+import localizacoes.ILocal;
 import model.Jogador;
 import model.Partida;
+import model.agentes.IJogador;
 import model.send.Arena;
 
-public class ControladorPartida implements Runnable{
+public class ControladorPartida implements Runnable, ILocal{
     
     Arena arena;
     Partida partida;
     Thread thread;
     ControladorGeral controladorGeral;
-    Jogador jogador1;
-    Jogador jogador2;
+    IJogador jogador1;
+    IJogador jogador2;
     
     // Ações
     private boolean running;
@@ -26,7 +28,7 @@ public class ControladorPartida implements Runnable{
     // Movemento
     private int dx1, dy1, dx2, dy2;
     
-    public ControladorPartida(Jogador jg1, Jogador jg2, ControladorGeral ctr){
+    public ControladorPartida(IJogador jg1, IJogador jg2, ControladorGeral ctr){
         jogador1 = jg1;
         jogador2 = jg2;
         controladorGeral = ctr;
@@ -89,7 +91,7 @@ public class ControladorPartida implements Runnable{
             case 1:
                 gameover = true;
                 controladorGeral.cobraMorreu(jogador1);
-                controladorGeral.cobraGanhou(jogador2);
+                controladorGeral.cobraGanhou(jogador2);                
                 break;
             //Cobra 2 morreu
             case 2:
@@ -193,4 +195,17 @@ public class ControladorPartida implements Runnable{
         else
             codUltimoMov2 = 4;
     }
+
+    public boolean finalizarPartida(IJogador jogador) {
+        gameover = true;
+        
+        if(jogador == jogador1){
+            controladorGeral.
+        }
+        
+    }
+    
+    
+    
+    
 }
