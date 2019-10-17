@@ -1,8 +1,13 @@
 package controller;
 
+import DataBase.AcessoBanco;
+import DataBase.DAO;
 import combinador.Combinador;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import localizacoes.Hall;
 import localizacoes.ILocal;
 import model.Jogador;
@@ -12,22 +17,62 @@ import stub.comunicacao.FilaMonitorada;
 
 public class ControladorGeral {
 
-    public void enviarQuadro(IJogador j1, IJogador j2, Arena arena) {
+    private DAO dao;
+    private Hall hall;
+    private Combinador combinador;
+    private Thread trdCombinador;
+    private FilaMonitorada<ArrayList<IJogador>> listaIniciar = new FilaMonitorada<ArrayList<IJogador>>(Integer.MAX_VALUE);
 
+    public ControladorGeral() {
+        this.hall = new Hall();
+        this.combinador = new Combinador(this, 1000);
+        this.trdCombinador = new Thread(this.combinador);
+        this.trdCombinador.start();
+        
+        try {
+            dao = new DAO();
+        } catch (SQLException ex) {
+            System.out.println("Erro ao criar DAO");
+        }
+    }
+    
+    public void enviarQuadro(IJogador j1, IJogador j2, Arena arena) {
+        
     }
 
     public void cobraMorreu(IJogador j) {
-
+        Jogador jogador = (Jogador)j;
+        jogador.perdeu();
+        dao.incrementaDerrota(jogador.getNome());
+        //jogador.setLocalAtual(hall); tirar hall
         //salva banco
     }
 
+    public void oponenteDesistiu(IJogador j) {
+        Jogador jogador = (Jogador)j;
+        jogador.oponenteDesistiu();
+        dao.incrementaVitorias(jogador.getNome());
+        //salva banco
+    }
+    
+    public void confirmaDesistencia(IJogador j) {
+        Jogador jogador = (Jogador)j;
+        jogador.oponenteDesistiu();
+        dao.incrementaDerrota(jogador.getNome());
+        //salva banco
+    }
+    
     public void cobraGanhou(IJogador j) {
-
+        Jogador jogador = (Jogador)j;
+        jogador.ganhou();
+        dao.incrementaVitorias(jogador.getNome());
         //salva banco
     }
 
     public void empatou(IJogador j) {
-
+        Jogador jogador = (Jogador)j;
+        jogador.empatou();
+        dao.incrementaEmpates(jogador.getNome());
         //salva banco
     }
 
@@ -46,24 +91,13 @@ public class ControladorGeral {
         ((Jogador) jogador).setLocalAtual(novoLocal);
     }
 
-    private Hall hall;
-    private Combinador combinador;
-    Thread trdCombinador;
-    private FilaMonitorada<ArrayList<IJogador>> listaIniciar = new FilaMonitorada<ArrayList<IJogador>>(Integer.MAX_VALUE);
 
-    public ControladorGeral() {
-        this.hall = new Hall();
-        this.combinador = new Combinador(this, 1000);
-        this.trdCombinador = new Thread(this.combinador);
-        this.trdCombinador.start();
-    }
 
     public void jogadoresCombinados(IJogador jogadorA, IJogador jogadorB) {
 
         ArrayList<IJogador> novoPar = new ArrayList<IJogador>();
         novoPar.add(jogadorA);
         novoPar.add(jogadorB);
-
         listaIniciar.adicionar(novoPar);
     }
 

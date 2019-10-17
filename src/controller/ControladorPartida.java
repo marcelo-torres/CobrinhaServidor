@@ -1,7 +1,7 @@
 package controller;
 
 import localizacoes.ILocal;
-import model.Jogador;
+
 import model.Partida;
 import model.agentes.IJogador;
 import model.send.Arena;
@@ -168,28 +168,28 @@ public class ControladorPartida implements Runnable, ILocal{
         partida.trataParedes();
     }
     
-    public void cima(Jogador jg){
+    public void cima(IJogador jg){
         if(jg == jogador1)
             codUltimoMov1 = 1;
         else
             codUltimoMov2 = 1;
     }
     
-    public void baixo(Jogador jg){
+    public void baixo(IJogador jg){
         if(jg == jogador1)
             codUltimoMov1 = 2;
         else
             codUltimoMov2 = 2;
     }
     
-    public void esquerda(Jogador jg){
+    public void esquerda(IJogador jg){
         if(jg == jogador1)
             codUltimoMov1 = 3;
         else
             codUltimoMov2 = 3;
     }
     
-    public void direita(Jogador jg){
+    public void direita(IJogador jg){
         if(jg == jogador1)
             codUltimoMov1 = 4;
         else
@@ -198,11 +198,15 @@ public class ControladorPartida implements Runnable, ILocal{
 
     public boolean finalizarPartida(IJogador jogador) {
         gameover = true;
-        
         if(jogador == jogador1){
-            controladorGeral.
+            controladorGeral.avisaOponenteDesistiu(jogador2);
+            
         }
-        
+        else{
+            controladorGeral.avisaOponenteDesistiu(jogador1);
+        }
+        controladorGeral.confirmaDesistencia(jogador);
+        return true;
     }
     
     
