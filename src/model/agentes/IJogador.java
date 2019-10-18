@@ -15,5 +15,7 @@ public interface IJogador{
     public void andarParaDireita();
     
     public double getVD();
+    
+    public void saindo();
  
 }

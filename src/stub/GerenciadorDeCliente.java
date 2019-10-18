@@ -2,8 +2,7 @@ package stub;
 
 import Logger.Logger;
 import static Logger.Logger.Tipo.ERRO;
-import model.agentes.ControladorDePartida;
-import model.agentes.IJogador;
+
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -11,28 +10,33 @@ import model.send.Arena;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
 import controller.ControladorGeralJogador;
+import model.Jogador;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
-import stub.comunicacao.FilaMonitorada;
+
 
 public class GerenciadorDeCliente extends Stub implements ControladorGeralJogador {
     
-    private final IJogador JOGADOR;
+    private Jogador JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
     private final GerenciadorDeConexaoUDPRemota GERENCIADOR_CONEXAO_UDP;
     
-    public GerenciadorDeCliente(IJogador jogador, Socket socket) {
+    public GerenciadorDeCliente(Socket socket) {
         super(Comunicador.Modo.SERVIDOR,
                 socket.getInetAddress(),
                 socket.getPort());
             
-        this.JOGADOR = jogador;    
+          
         this.ENDERECO_DO_SERVIDOR = socket.getInetAddress();
         this.GERENCIADOR_CONEXAO_UDP = new GerenciadorDeConexaoUDPRemota(this.MENSAGEIRO, this.ENDERECO_DO_SERVIDOR, this.INTERPRETADOR);
         this.INTERPRETADOR.cadastrarComandos(this.criarComandosNecessarios());
         
         super.iniciar(socket);
+    }
+
+    public void setJogador(Jogador jogador) {
+        this.JOGADOR = JOGADOR;
     }
     
     @Override
@@ -60,15 +64,6 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
     
-    @Override
-    public void empatou() {
-        /*
-        byte[] mensagem = this.INTERPRETADOR.codificarVoceGanhou();
-        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
-        */
-        
-        //Marcelo resolve este metodo aqui
-    }
 
     @Override
     public void adversarioSaiu() {
@@ -82,11 +77,13 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
 
+    /*
     @Override
     public void logar(String login) {
         byte[] mensagem = this.INTERPRETADOR.codificarLogar(login);
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
+    */
 
     @Override
     public void falhaAoLogar(String mensagemTextual) {

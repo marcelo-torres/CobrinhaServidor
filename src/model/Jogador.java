@@ -9,14 +9,22 @@ import controller.ControladorGeralJogador;
 
 
 public class Jogador implements IJogador {
-    //criar contrutor
+    
     private String nome;
     private ControladorGeral cg;
     private ILocal localAtual;
     private ControladorGeralJogador controleJogador;
-    
 
+    public Jogador(ControladorGeral cg, ControladorGeralJogador controleJogador) {
+        this.cg = cg;
+        this.controleJogador = controleJogador;
+        this.cg.entrando(this);
+    }
+    
     public void setNome(String nome) {
+        if(nome == null || nome.isEmpty()){
+            controleJogador.falha("Nome inválido.");
+        }
         this.nome = nome;
     }
 
@@ -25,17 +33,20 @@ public class Jogador implements IJogador {
     }
     
     public double getVD(){
-        return 0.0;
+        return cg.getVD(this);
     }
 
-
+    
+    
     public void setLocalAtual(ILocal local) {
         this.localAtual = local;
     }
 
     @Override
     public boolean iniciarPartida() {
+
         return cg.iniciarPartida(this);
+        
     }
 
     @Override
@@ -45,32 +56,31 @@ public class Jogador implements IJogador {
 
     @Override
     public boolean encerrarPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        
+        return cg.encerrarPartida(this);
     }
 
     @Override
     public void andarParaCima() {
-        
+        cg.cima(this);
     }
 
     @Override
     public void andarParaBaixo() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        cg.baixo(this);
     }
 
     @Override
     public void andarParaEsquerda() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+       cg.esquerda(this);
     }
 
     @Override
     public void andarParaDireita() {
-        
+        cg.direita(this);
     }
 
     public void novoQuadro(Arena arena){
-        
+        controleJogador.entregarQuadro(arena);
     }
 
     
@@ -80,6 +90,35 @@ public class Jogador implements IJogador {
 	
     public void oponenteDesistiu(){
         controleJogador.adversarioSaiu();
+    }
+
+    public void ganhou() {
+        controleJogador.ganhou();
+    }
+
+    public void empatou() {
+        controleJogador.empatou();
+    }
+
+    public void perdeu() {
+        controleJogador.perdeu();
+    }
+
+    public void irParaHall() {
+        controleJogador.irParaOHall();
+    }
+
+    public void irParaPartida() {
+        controleJogador.partidaIniciada();
+    }
+
+    public void combinando() {
+        controleJogador.procurandoPartida();
+    }
+
+    @Override
+    public void saindo() {
+        cg.saindo(this);
     }
     
 }

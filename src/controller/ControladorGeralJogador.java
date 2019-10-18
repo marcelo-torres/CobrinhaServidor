@@ -5,7 +5,7 @@
  */
 package controller;
 
-import model.agentes.IJogador;
+
 import model.send.Arena;
 
 /**
@@ -21,5 +21,9 @@ public interface ControladorGeralJogador {
     public void adversarioSaiu();
     public void falhaAoLogar(String mensagemTextual);
     public void irParaOHall();
-    public void logar(String login);
+
+    public void falha(String nome_inválido);
+    public void partidaIniciada();
+    public void procurandoPartida();
+    
 }

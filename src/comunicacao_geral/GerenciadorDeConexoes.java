@@ -1,18 +1,31 @@
 package comunicacao_geral;
 
-import comunicacao_geral.GerenciadorDeRequisicao;
+//import comunicacao_geral.GerenciadorDeRequisicao;
 import java.net.Socket;
 import java.util.LinkedList;
-import cliente.RepresentanteJogador;
+//import cliente.RepresentanteJogador;
+import controller.ControladorGeral;
+import model.Jogador;
+import stub.GerenciadorDeCliente;
 
 public class GerenciadorDeConexoes implements GerenciadorDeRequisicao {
+    
+    private ControladorGeral cg;
+    public GerenciadorDeConexoes(ControladorGeral controladorGeral){
+        this.cg = controladorGeral;
+    }
     
     @Override
     public void gerenciarRequisicao(Socket socket) {
         
         // TODO salvar as threads ativas
         
-        new Thread(new RepresentanteJogador(socket)).start();
+       // new Thread(new RepresentanteJogador(socket)).start();
+       
+       GerenciadorDeCliente novoGerenciador = new GerenciadorDeCliente(socket);
+       Jogador novoJogador = new Jogador(cg, novoGerenciador);
+       novoGerenciador.setJogador(novoJogador);
+       
     }
     
     public static class ListaLimitada<E>{

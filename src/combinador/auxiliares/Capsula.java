@@ -31,10 +31,8 @@ public class Capsula {
 		
 		nova.timeStamp = System.currentTimeMillis();
 		return nova;
-		
 	}
-	
-	
+        
 	public long getTimeStamp() {
 		return timeStamp;
 	}
@@ -67,7 +65,6 @@ public class Capsula {
 	public double getVD() {
 		return this.vd;
 	}
-	
 
 	public Capsula expandir(double passosPorSegundos, long tempoAtual, int maxSegundos) {
 		
@@ -94,7 +91,6 @@ public class Capsula {
 			distanciaMaisPerto = distanciaAnterior;
 		}
 		
-		
 		if(tempoEmSegundos >= maxSegundos) {
 			/*
 			return maisPerto.tirarDaFila();
@@ -109,9 +105,7 @@ public class Capsula {
 			return maisPerto;
 		}
 		
-		
 		return null;
-		
 	}
 	
 	
@@ -121,14 +115,12 @@ public class Capsula {
 		
 		if(distancia <= distanciaAceitavel) return true;
 		return false;
-		
 	}
 	
 	private double distancia(Capsula outra) {
 		double distancia = this.getVD() - outra.getVD();		
 		if(distancia > 0) return distancia;
 		return distancia * -1;
-		
 	}
 	
 	public IJogador getJogador() {

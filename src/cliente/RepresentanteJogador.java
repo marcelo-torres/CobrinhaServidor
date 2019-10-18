@@ -15,7 +15,7 @@ public class RepresentanteJogador implements Runnable,  IJogador {
     
     public RepresentanteJogador(Socket socket) {
         this.SOCKET = socket;
-        this.GerenciadorDeCliente = new GerenciadorDeCliente(this, socket);
+        this.GerenciadorDeCliente = new GerenciadorDeCliente(socket);
     }
 
 
