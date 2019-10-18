@@ -1,21 +1,19 @@
 package model.agentes;
 
-import java.io.Closeable;
-
-
 public interface IJogador{
     
-    public boolean iniciarPartida();
-    public boolean desistirDeProcurarPartida();
-    public boolean encerrarPartida();
+    public void iniciarSessao(String nome_jogador);
+    public void encerrarSessao();
+    
+    public void iniciarPartida();
+    public void desistirDeProcurarPartida();
+    public void encerrarPartida();
     
     public void andarParaCima();
     public void andarParaBaixo();
     public void andarParaEsquerda();
     public void andarParaDireita();
     
-    public double getVD();
-    
-    public void saindo();
+    public Double getVD();
  
 }
