@@ -9,14 +9,14 @@ import java.util.LinkedList;
 import model.send.Arena;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
-import controller.ControladorGeralJogador;
 import model.Jogador;
+import model.agentes.IControladorGeralVisaoAplicacaoServidor;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
 
 
-public class GerenciadorDeCliente extends Stub implements ControladorGeralJogador {
+public class GerenciadorDeCliente extends Stub implements IControladorGeralVisaoAplicacaoServidor {
     
     private Jogador JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
@@ -49,7 +49,6 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
         this.INTERPRETADOR.interpretar(mensagem);
     }
     
-    
     /* ########################### CHAMADAS DE RPC ########################## */
 
     @Override
@@ -64,7 +63,6 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
     
-
     @Override
     public void adversarioSaiu() {
         byte[] mensagem = this.INTERPRETADOR.codificarAdversarioSaiu();
@@ -72,7 +70,7 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
     }
 
     @Override
-    public void irParaOHall() {
+    public void exibirTelaSessao() { //era ir para hall, mudei aqui||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
         byte[] mensagem = this.INTERPRETADOR.codificarIrParaOHall();
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
@@ -92,7 +90,7 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
     }
     
     @Override
-    public void entregarQuadro(Arena arena) {
+    public void novoQuadro(Arena arena) {
         byte[] mensagem = this.INTERPRETADOR.codificarEntregarQuadro(arena);
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
@@ -100,6 +98,36 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
     @Override
     protected void devolverRetorno(byte[] mensagemRetorno) {
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagemRetorno);
+    }
+    
+    @Override
+    public void empatou() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void falha(String nome_inválido) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void exibirTelaJogo() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void procurandoPartida() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void exibirTelaBusca() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void exibirTelaInicio() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
@@ -129,6 +157,8 @@ public class GerenciadorDeCliente extends Stub implements ControladorGeralJogado
         */
         return listaDeComandos;
     }
+
+    
     
 
 

@@ -1,9 +1,10 @@
 package controller;
 
+import java.awt.Color;
 import localizacoes.ILocal;
 
 import model.Partida;
-import model.agentes.IJogador;
+import model.agentes.IJogadorProtegido;
 import model.send.Arena;
 
 public class ControladorPartida implements Runnable, ILocal{
@@ -12,8 +13,8 @@ public class ControladorPartida implements Runnable, ILocal{
     Partida partida;
     Thread thread;
     ControladorGeral controladorGeral;
-    IJogador jogador1;
-    IJogador jogador2;
+    IJogadorProtegido jogador1;
+    IJogadorProtegido jogador2;
     
     // Ações
     private boolean running;
@@ -28,7 +29,7 @@ public class ControladorPartida implements Runnable, ILocal{
     // Movemento
     private int dx1, dy1, dx2, dy2;
     
-    public ControladorPartida(IJogador jg1, IJogador jg2, ControladorGeral ctr){
+    public ControladorPartida(IJogadorProtegido jg1, IJogadorProtegido jg2, ControladorGeral ctr){
         jogador1 = jg1;
         jogador2 = jg2;
         controladorGeral = ctr;
@@ -69,8 +70,26 @@ public class ControladorPartida implements Runnable, ILocal{
         gameover = false;
         dx1 = dy1 = dx2 = dy2 = 0;
         setFPS(10);
-        controladorGeral.enviarQuadro(jogador1, jogador2, arena);
+        enviarQuadro(jogador1, jogador2, arena);
     }
+    
+    
+    private void enviarQuadro(IJogadorProtegido jogador1, IJogadorProtegido jogador2, Arena arena){
+        Color c1 = arena.getCobra1().getCor();
+        Color c2 = arena.getCobra2().getCor();
+        
+        controladorGeral.enviarQuadro(jogador1, arena);
+        
+        arena.getCobra1().setCor(c2);
+        arena.getCobra2().setCor(c1);
+        
+        controladorGeral.enviarQuadro(jogador2, arena);
+        
+        arena.getCobra1().setCor(c1);
+        arena.getCobra2().setCor(c2);
+        
+    }
+    
     
     public void setFPS(int fps) {
         targetTime = 1000/fps;
@@ -111,7 +130,10 @@ public class ControladorPartida implements Runnable, ILocal{
         
         partida.atualizaArena();
         
-        controladorGeral.enviarQuadro(jogador1, jogador2, arena);
+        
+        
+        
+        enviarQuadro(jogador1, jogador2, arena);
     }
     
     public void computaCodMovimento(){
@@ -168,35 +190,35 @@ public class ControladorPartida implements Runnable, ILocal{
         partida.trataParedes();
     }
     
-    public void cima(IJogador jg){
+    public void cima(IJogadorProtegido jg){
         if(jg == jogador1)
             codUltimoMov1 = 1;
         else
             codUltimoMov2 = 1;
     }
     
-    public void baixo(IJogador jg){
+    public void baixo(IJogadorProtegido jg){
         if(jg == jogador1)
             codUltimoMov1 = 2;
         else
             codUltimoMov2 = 2;
     }
     
-    public void esquerda(IJogador jg){
+    public void esquerda(IJogadorProtegido jg){
         if(jg == jogador1)
             codUltimoMov1 = 3;
         else
             codUltimoMov2 = 3;
     }
     
-    public void direita(IJogador jg){
+    public void direita(IJogadorProtegido jg){
         if(jg == jogador1)
             codUltimoMov1 = 4;
         else
             codUltimoMov2 = 4;
     }
 
-    public boolean finalizarPartida(IJogador jogador) {
+    public boolean finalizarPartida(IJogadorProtegido jogador) {
         gameover = true;
         if(jogador == jogador1){
             controladorGeral.avisaOponenteDesistiu(jogador2);

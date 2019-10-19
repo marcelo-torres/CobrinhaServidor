@@ -18,12 +18,12 @@ public class IniciadorDePartidas implements Runnable {
 
         // TODO Auto-generated method stub
         while (running) {
-            ArrayList<IJogador> novo = controladorGeral.getPar();
+            ArrayList<IJogadorProtegido> novo = controladorGeral.getPar();
 
         }
     }
 
-    private void iniciaPartida(IJogador jogadorA, IJogador jogadorB) {
+    private void iniciaPartida(IJogadorVisaoStubServidor jogadorA, IJogadorVisaoStubServidor jogadorB) {
         controladorGeral.iniciarPartidaPronta(jogadorA, jogadorB);
         
     }

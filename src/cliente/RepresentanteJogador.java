@@ -1,14 +1,14 @@
 package cliente;
 
-import model.agentes.IJogador;
 import java.net.Socket;
 import localizacoes.Hall;
 import stub.GerenciadorDeCliente;
 import localizacoes.ILocal;
 import model.send.Arena;
+import model.agentes.IJogadorVisaoStubServidor;
 
 
-public class RepresentanteJogador implements Runnable,  IJogador {
+public class RepresentanteJogador implements Runnable,  IJogadorVisaoStubServidor {
     
     private final GerenciadorDeCliente GerenciadorDeCliente;
     private final Socket SOCKET;
@@ -85,12 +85,22 @@ public class RepresentanteJogador implements Runnable,  IJogador {
         GerenciadorDeCliente.perdeu();
         
         GerenciadorDeCliente.adversarioSaiu();
-        GerenciadorDeCliente.irParaOHall();
-        GerenciadorDeCliente.logar("<login_do_usuario>");
+        GerenciadorDeCliente.exibirTelaSessao();
+        //GerenciadorDeCliente.logar("<login_do_usuario>");//?? 
         GerenciadorDeCliente.falhaAoLogar("<mensagem_de_erro>");
         Arena arena = new Arena(10, 10, 5);
         System.out.println("Enviando quadro..." + arena);
-        GerenciadorDeCliente.entregarQuadro(arena);
+        GerenciadorDeCliente.novoQuadro(arena);
+    }
+
+    @Override
+    public void iniciarSessao(String nome_jogador) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void encerrarSessao() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 

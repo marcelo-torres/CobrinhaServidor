@@ -1,21 +1,16 @@
 package controller;
 
-import DataBase.AcessoBanco;
 import DataBase.DAO;
 import combinador.Combinador;
 import controller.auxiliares.IniciadorDePartidas;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import localizacoes.Hall;
 import localizacoes.ILocal;
-import model.Jogador;
-import model.agentes.IJogador;
+import model.agentes.IJogadorVisaoControladorServidor;
 import model.send.Arena;
+import model.agentes.IJogadorProtegido;
 import stub.comunicacao.FilaMonitorada;
-
 public class ControladorGeral {
 
     private IniciadorDePartidas iniciadorDePartidas = new IniciadorDePartidas(this);
@@ -27,7 +22,7 @@ public class ControladorGeral {
     private int jogadoresLigados;
     private Object lockerJogadoresLigados;
     
-    private FilaMonitorada<ArrayList<IJogador>> listaIniciar = new FilaMonitorada<ArrayList<IJogador>>(Integer.MAX_VALUE);
+    private FilaMonitorada<ArrayList<IJogadorProtegido>> listaIniciar = new FilaMonitorada<ArrayList<IJogadorProtegido>>(Integer.MAX_VALUE);
 
     public ControladorGeral() {
         
@@ -42,27 +37,28 @@ public class ControladorGeral {
 
     }
     
-    public void enviarQuadro(IJogador j1, IJogador j2, Arena arena) {
+    public void enviarQuadro(IJogadorProtegido jogador, Arena arena) {
         
     }
 
-    public void cobraMorreu(IJogador j) {
-        Jogador jogador = (Jogador)j;
+    public void cobraMorreu(IJogadorProtegido j) {
+        IJogadorVisaoControladorServidor jogador = (IJogadorVisaoControladorServidor)j;
         jogador.perdeu();
         dao.incrementaDerrota(jogador.getNome());
         jogador.setLocalAtual(hall);
         
     }
 
-    public void oponenteDesistiu(IJogador j) {
-        Jogador jogador = (Jogador)j;
-        jogador.oponenteDesistiu();
-        dao.incrementaVitorias(jogador.getNome());
-        jogador.setLocalAtual(hall);
+    public void oponenteDesistiu(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        j.oponenteDesistiu();
+        dao.incrementaVitorias(j.getNome());
+        j.setLocalAtual(hall);
         
     }
     
-    public boolean cima(Jogador j) {
+    public boolean cima(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
         ILocal local = j.getLocalAtual();
         if (!(local instanceof ControladorPartida)) {
             return false;
@@ -73,7 +69,8 @@ public class ControladorGeral {
         
     }
     
-    public boolean baixo(Jogador j) {
+    public boolean baixo(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
         ILocal local = j.getLocalAtual();
         if (!(local instanceof ControladorPartida)) {
             return false;
@@ -84,7 +81,8 @@ public class ControladorGeral {
         
     }
         
-    public boolean esquerda(Jogador j) {
+    public boolean esquerda(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
         ILocal local = j.getLocalAtual();
         if (!(local instanceof ControladorPartida)) {
             return false;
@@ -95,7 +93,9 @@ public class ControladorGeral {
         
     }
             
-    public boolean direita(Jogador j) {
+    public boolean direita(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        
         ILocal local = j.getLocalAtual();
         if (!(local instanceof ControladorPartida)) {
             return false;
@@ -106,32 +106,34 @@ public class ControladorGeral {
         
     }
     
-    public void confirmaDesistencia(IJogador j) {
-        Jogador jogador = (Jogador)j;
-        jogador.oponenteDesistiu();
-        dao.incrementaDerrota(jogador.getNome());
-        jogador.setLocalAtual(hall);
+    public void confirmaDesistencia(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        j.oponenteDesistiu();
+        dao.incrementaDerrota(j.getNome());
+        j.setLocalAtual(hall);
         
     }
     
-    public void cobraGanhou(IJogador j) {
-        Jogador jogador = (Jogador)j;
-        jogador.ganhou();
-        dao.incrementaVitorias(jogador.getNome());
-        jogador.setLocalAtual(hall);
+    public void cobraGanhou(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        j.ganhou();
+        dao.incrementaVitorias(j.getNome());
+        j.setLocalAtual(hall);
         
     }
 
-    public void empatou(IJogador j) {
-        Jogador jogador = (Jogador)j;
-        jogador.empatou();
-        dao.incrementaEmpates(jogador.getNome());
-        jogador.setLocalAtual(hall);
+    public void empatou(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        j.empatou();
+        dao.incrementaEmpates(j.getNome());
+        j.setLocalAtual(hall);
         
     }
 
-    public boolean encerrarPartida(IJogador jogador) {
-        ILocal local = ((Jogador) jogador).getLocalAtual();
+    public boolean encerrarPartida(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        
+        ILocal local = j.getLocalAtual();
         if (!(local instanceof ControladorPartida)) {
             return false;
         }
@@ -141,83 +143,89 @@ public class ControladorGeral {
 
     }
 
-    public void setLocalAtual(IJogador jogador, ILocal novoLocal) {
-        Jogador atual = (Jogador) jogador;
+    public void setLocalAtual(IJogadorProtegido jogador, ILocal novoLocal) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        
         
         if(novoLocal == hall){
-            atual.irParaHall();
+            j.irParaHall();
         }
         else if(novoLocal instanceof ControladorPartida){
-            atual.irParaPartida();
+            j.irParaPartida();
         }
         else if(novoLocal == combinador){
-            atual.combinando();
+            j.combinando();
         }
         
-        ((Jogador) jogador).setLocalAtual(novoLocal);
+        j.setLocalAtual(novoLocal);
     }
 
 
 
-    public void jogadoresCombinados(IJogador jogadorA, IJogador jogadorB) {
+    public void jogadoresCombinados(IJogadorProtegido jogadorA, IJogadorProtegido jogadorB) {
 
-        ArrayList<IJogador> novoPar = new ArrayList<IJogador>();
+        ArrayList<IJogadorProtegido> novoPar = new ArrayList<IJogadorProtegido>();
         novoPar.add(jogadorA);
         novoPar.add(jogadorB);
         listaIniciar.adicionar(novoPar);
     }
 
-    public boolean iniciarPartida(Jogador jogador) {
-        if(jogador.getNome() == null || jogador.getNome().isEmpty());
+    public boolean iniciarPartida(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        
+        if(j.getNome() == null || j.getNome().isEmpty());
         return combinador.inserir(jogador);
     }
 
-    public boolean desistirDeIniciar(Jogador jogador) {
+    public boolean desistirDeIniciar(IJogadorProtegido jogador) {
 
-        if (this.combinador != jogador.getLocalAtual()) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        if (this.combinador != j.getLocalAtual()) {
             return false;
         }
 
-        if (!combinador.remover(jogador)) {
+        if (!combinador.remover(j)) {
             return false;
         }
 
-        jogador.setLocalAtual(hall);
+        j.setLocalAtual(hall);
         return true;
     }
     
-    public boolean desistirDoJogo(Jogador jogador) {
+    public boolean desistirDoJogo(IJogadorProtegido jogador) {
 
-        ILocal localAtual = jogador.getLocalAtual();
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
+        
+        ILocal localAtual = j.getLocalAtual();
         
         if (!(localAtual instanceof ControladorPartida)) {
             return false;
         }
 
         ControladorPartida cp = (ControladorPartida)localAtual;
-        cp.finalizarPartida(jogador);
+        cp.finalizarPartida(j);
         
         return true;
     }
 
-    public void alterarLocal(Jogador jogador, ILocal local) {
+    private void alterarLocal(IJogadorVisaoControladorServidor jogador, ILocal local) {
         jogador.setLocalAtual(local);
     }
    
 
-    public void avisaOponenteDesistiu(IJogador jogador) {
+    public void avisaOponenteDesistiu(IJogadorProtegido jogador) {
         
-        Jogador j = (Jogador) jogador;
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
         j.oponenteDesistiu();
         alterarLocal(j, hall);
         
     }
     
-    public ArrayList<IJogador> getPar() {
+    public ArrayList<IJogadorProtegido> getPar() {
         return listaIniciar.remover();
     }
     
-    public void iniciarPartidaPronta(IJogador jogadorA, IJogador jogadorB){
+    public void iniciarPartidaPronta(IJogadorProtegido jogadorA, IJogadorProtegido jogadorB){
         
         ControladorPartida novoCP = new ControladorPartida(jogadorA, jogadorB, this);
         setLocalAtual(jogadorB, novoCP);
@@ -225,24 +233,27 @@ public class ControladorGeral {
         
     }
     
-    public double getVD(IJogador jogador){
-        Jogador j = (Jogador) jogador;
-        String nome = j.getNome();
+    public double getVD(IJogadorVisaoControladorServidor jogador){
+        String nome = jogador.getNome();
         return dao.getVD(nome);
     }
 
-    public void entrando(Jogador jogador) {
+    public void entrando(IJogadorVisaoControladorServidor jogador) {
         synchronized(lockerJogadoresLigados){
             jogadoresLigados++;
         }
     }
     
-    public void saindo(Jogador jogador) {
+    public void saindo(IJogadorProtegido jogador) {
+        IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor)jogador;
+        
         synchronized(lockerJogadoresLigados){
             jogadoresLigados--;
         }
         
-        ILocal local = jogador.getLocalAtual();
+        
+        
+        ILocal local = j.getLocalAtual();
         
         if(local == hall){
             return;
@@ -255,7 +266,7 @@ public class ControladorGeral {
             while(local == combinador){
                 try {
                     Thread.sleep(1000);
-                    local = jogador.getLocalAtual();
+                    local = j.getLocalAtual();
                 } catch (InterruptedException ex) {
                     System.out.println(ex.getMessage());
                 }
@@ -266,7 +277,8 @@ public class ControladorGeral {
         }
         
         if (local instanceof ControladorPartida){
-            jogador.encerrarPartida();
+            ControladorPartida ctr = (ControladorPartida) local;
+            ctr.finalizarPartida(j);
             
         }
     }

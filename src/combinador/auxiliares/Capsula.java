@@ -1,15 +1,16 @@
 package combinador.auxiliares;
 
-import model.agentes.IJogador;
+import model.agentes.IJogadorProtegido;
+import model.agentes.IJogadorVisaoStubServidor;
 
 public class Capsula {
 	
 	private long timeStamp;
 	private double vd;
-	private IJogador jogador;
+	private IJogadorProtegido jogador;
 	private Capsula proximoTempo, anteriorTempo, proximoVD, anteriorVD;
 	
-	public Capsula(IJogador jogador) {
+	public Capsula(IJogadorProtegido jogador) {
 		if(jogador == null) return;
 		this.jogador = jogador;
 		this.timeStamp = System.currentTimeMillis(); 
@@ -123,7 +124,7 @@ public class Capsula {
 		return distancia * -1;
 	}
 	
-	public IJogador getJogador() {
+	public IJogadorProtegido getJogador() {
 		return this.jogador;
 	}
 	

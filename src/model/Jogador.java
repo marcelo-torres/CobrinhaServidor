@@ -1,43 +1,52 @@
 package model;
 
 import controller.ControladorGeral;
-import java.util.concurrent.Semaphore;
-import model.agentes.IJogador;
+
 import localizacoes.ILocal;
 import model.send.Arena;
-import controller.ControladorGeralJogador;
+
+import model.agentes.IControladorGeralVisaoAplicacaoServidor;
+import model.agentes.IJogadorProtegido;
+import model.agentes.IJogadorVisaoStubServidor;
+import model.agentes.IJogadorVisaoControladorServidor;
 
 
-public class Jogador implements IJogador {
+public class Jogador implements IJogadorVisaoStubServidor, IJogadorVisaoControladorServidor, IJogadorProtegido {
     
     private String nome;
     private ControladorGeral cg;
     private ILocal localAtual;
-    private ControladorGeralJogador controleJogador;
+    private IControladorGeralVisaoAplicacaoServidor controleJogador;
 
-    public Jogador(ControladorGeral cg, ControladorGeralJogador controleJogador) {
+    public Jogador(ControladorGeral cg, IControladorGeralVisaoAplicacaoServidor controleJogador) {
         this.cg = cg;
         this.controleJogador = controleJogador;
         this.cg.entrando(this);
     }
     
-    public void setNome(String nome) {
+    @Override
+    public void iniciarSessao(String nome) {
         if(nome == null || nome.isEmpty()){
             controleJogador.falha("Nome inválido.");
         }
         this.nome = nome;
     }
 
+    @Override
     public String getNome() {
         return nome;
     }
     
+    
+
+    @Override
     public double getVD(){
         return cg.getVD(this);
     }
 
     
     
+    @Override
     public void setLocalAtual(ILocal local) {
         this.localAtual = local;
     }
@@ -79,46 +88,56 @@ public class Jogador implements IJogador {
         cg.direita(this);
     }
 
+    @Override
     public void novoQuadro(Arena arena){
-        controleJogador.entregarQuadro(arena);
+        controleJogador.novoQuadro(arena);
     }
 
     
+    @Override
     public ILocal getLocalAtual() {
         return localAtual;
     }
 	
+    @Override
     public void oponenteDesistiu(){
         controleJogador.adversarioSaiu();
     }
 
+    @Override
     public void ganhou() {
         controleJogador.ganhou();
     }
 
+    @Override
     public void empatou() {
         controleJogador.empatou();
     }
 
+    @Override
     public void perdeu() {
         controleJogador.perdeu();
     }
 
+    @Override
     public void irParaHall() {
-        controleJogador.irParaOHall();
+        controleJogador.exibirTelaSessao();
     }
 
+    @Override
     public void irParaPartida() {
-        controleJogador.partidaIniciada();
+        controleJogador.exibirTelaJogo();
     }
 
+    @Override
     public void combinando() {
         controleJogador.procurandoPartida();
     }
 
     @Override
-    public void saindo() {
+    public void encerrarSessao() {
         cg.saindo(this);
     }
+
     
 }

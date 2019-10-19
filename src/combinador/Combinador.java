@@ -5,8 +5,9 @@ import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 import combinador.auxiliares.*;
 import controller.*;
+import model.agentes.IJogadorProtegido;
 
-import model.agentes.IJogador;
+import model.agentes.IJogadorVisaoStubServidor;
 
 public class Combinador implements Runnable {
 
@@ -30,9 +31,9 @@ public class Combinador implements Runnable {
 			try {
 				sleeperDoCombinador.acquire();
 				
-                                LinkedList<ArrayList<IJogador>> lista = estrutura.listaDeParesFormados();
+                                LinkedList<ArrayList<IJogadorProtegido>> lista = estrutura.listaDeParesFormados();
 				
-                                for(ArrayList<IJogador> jogadores : lista) {		
+                                for(ArrayList<IJogadorProtegido> jogadores : lista) {		
                                         cg.jogadoresCombinados(jogadores.get(0), jogadores.get(1));
 				}
 				Thread.sleep(this.tempoDormindo);
@@ -105,7 +106,7 @@ public class Combinador implements Runnable {
 		
 	}
 	
-	public boolean inserir(IJogador jogador) {
+	public boolean inserir(IJogadorProtegido jogador) {
 		estrutura.inserir(jogador);
                 
 		incrementaQuant();
@@ -113,7 +114,7 @@ public class Combinador implements Runnable {
                 return true;
 	}
 	
-	public boolean remover(IJogador jogador) {
+	public boolean remover(IJogadorProtegido jogador) {
 		if(estrutura.remover(jogador)) {
 			decrementaQuant();
 			return true;

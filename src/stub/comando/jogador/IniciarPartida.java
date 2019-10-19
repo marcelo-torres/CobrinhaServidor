@@ -1,11 +1,11 @@
 package stub.comando.jogador;
 
-import model.agentes.IJogador;
 import stub.comando.Parametros;
+import model.agentes.IJogadorVisaoStubServidor;
 
 public class IniciarPartida extends ComandoJogador {
     
-    public IniciarPartida(String codigo, IJogador jogador) {
+    public IniciarPartida(String codigo, IJogadorVisaoStubServidor jogador) {
         super(codigo, false, jogador);
     }
 

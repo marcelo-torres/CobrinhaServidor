@@ -1,11 +1,11 @@
 package stub.comando.jogador;
 
-import model.agentes.IJogador;
 import stub.comando.Parametros;
+import model.agentes.IJogadorVisaoStubServidor;
 
 public class GetVD extends ComandoJogador{
    
-    public GetVD(String codigo, IJogador jogador) {
+    public GetVD(String codigo, IJogadorVisaoStubServidor jogador) {
         super(codigo, true, jogador);
     }
 

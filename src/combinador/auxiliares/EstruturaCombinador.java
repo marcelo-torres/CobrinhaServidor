@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
-import model.agentes.*;
+import model.agentes.IJogadorProtegido;
 
 
 public class EstruturaCombinador {
 	
 	private Capsula cabeca = Capsula.novaCabeca();
-	private HashMap<IJogador, Capsula> mapaCapsulas = new HashMap<>();
-	private HashMap<IJogador, Capsula> mapaEntrada = new HashMap<>();
+	private HashMap<IJogadorProtegido, Capsula> mapaCapsulas = new HashMap<>();
+	private HashMap<IJogadorProtegido, Capsula> mapaEntrada = new HashMap<>();
 	private double passosPorSegundos = 0.1;
 	private int maxSegundos = 50;
 	
@@ -22,7 +22,7 @@ public class EstruturaCombinador {
 	private Semaphore semExternoMapaEntrada = new Semaphore(1);
 	private Semaphore semExternoEstruturaPrincipal = new Semaphore(1);	
 	
-	public void inserir(IJogador jogador) {
+	public void inserir(IJogadorProtegido jogador) {
 		if(jogador == null) return;
 		
 		Capsula nova = new Capsula(jogador);
@@ -50,12 +50,12 @@ public class EstruturaCombinador {
 	
 	private void transferir() { // tranfere os novos jogadores para a estrutura principal
 		
-		for(IJogador j: mapaEntrada.keySet()) {
+		for(IJogadorProtegido j: mapaEntrada.keySet()) {
 			inserirPrincipal(mapaEntrada.remove(j));
 		}
 	}
 	
-	private boolean removerMapaInicial(IJogador jogador) {
+	private boolean removerMapaInicial(IJogadorProtegido jogador) {
 		
 		int acquired = 0;
 		try {
@@ -84,7 +84,7 @@ public class EstruturaCombinador {
 		
 	}
 	
-	public boolean remover(IJogador jogador) {
+	public boolean remover(IJogadorProtegido jogador) {
 						
 		if(removerMapaInicial(jogador)) return true;
 		
@@ -158,9 +158,9 @@ public class EstruturaCombinador {
 			mapaCapsulas.put(capsula.getJogador(), capsula);
 	}
 	
-	public LinkedList<ArrayList<IJogador>> listaDeParesFormados(){
+	public LinkedList<ArrayList<IJogadorProtegido>> listaDeParesFormados(){
 		
-		LinkedList<ArrayList<IJogador>> lista = new LinkedList<ArrayList<IJogador>>();
+		LinkedList<ArrayList<IJogadorProtegido>> lista = new LinkedList<ArrayList<IJogadorProtegido>>();
 		
 		int acquired = 0;
 		try {
@@ -187,7 +187,7 @@ public class EstruturaCombinador {
 				
 				//Alcan�ou alguem
 				
-				ArrayList<IJogador> novoPar = new ArrayList<>();
+				ArrayList<IJogadorProtegido> novoPar = new ArrayList<>();
 				novoPar.add(atualBusca.getJogador());
 				novoPar.add(alcancada.getJogador());
 				
