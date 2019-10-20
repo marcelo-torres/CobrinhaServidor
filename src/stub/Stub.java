@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.util.concurrent.Semaphore;
 import model.ErroApresentavelException;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.LinkedList;
 import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.ATIVADO;
 import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.ATIVANDO;
@@ -153,12 +154,61 @@ public abstract class Stub implements Closeable {
         //private boolean iniciouProcessoDeAbertura = false;
         //private boolean encerramentoSolicitado = false;
         
+        public static class GerenciadorDePortas {
+        
+            private LinkedList<Integer> PORTAS_DISPONIVEIS = new LinkedList<>();
+            private HashMap<Integer, Boolean> PORTAS_USADAS = new HashMap<>();
+            
+            private final int INICIO_INTERVALO;
+            private final int FIM_INTERVALO;
+            
+            public GerenciadorDePortas(int inicioIntervalo, int fimIntervalo) {
+                if(fimIntervalo - inicioIntervalo < 0) {
+                    throw new IllegalArgumentException("O fim do intervalo deve ser maior do que o inicio");
+                }
+                
+                this.INICIO_INTERVALO = inicioIntervalo;
+                this.FIM_INTERVALO = fimIntervalo;
+                
+                for(int porta = this.INICIO_INTERVALO; porta <= this.FIM_INTERVALO; porta++) {
+                    this.PORTAS_DISPONIVEIS.add(porta);
+                    this.PORTAS_USADAS.put(porta, false);
+                }
+            }
+            
+            public int getPorta() {
+                if(this.PORTAS_DISPONIVEIS.size() == 0) {
+                    throw new RuntimeException("Nenhuma porta disponivel");
+                }
+                
+                int porta = PORTAS_DISPONIVEIS.getFirst();
+                this.PORTAS_USADAS.put(porta, true);
+                
+                return porta;
+            }
+            
+            public void liberarPorta(int porta) {
+                if(this.PORTAS_USADAS.get(porta)) {
+                    this.PORTAS_DISPONIVEIS.add(porta);
+                    this.PORTAS_USADAS.put(porta, false);
+                }
+            }
+        }
+        
+        private final GerenciadorDePortas GERENCIADOR_DE_PORTAS;
         private Estado estado = DESATIVADO;
         
-        public GerenciadorDeConexaoUDPRemota(Mensageiro mensageiro, InetAddress enderecoServidor, Interpretador interpretador) {
+        public GerenciadorDeConexaoUDPRemota(
+                Mensageiro mensageiro,
+                InetAddress enderecoServidor,
+                Interpretador interpretador,
+                int inicioIntervaloUDP,
+                int fimIntervaloUDP) {
             this.MENSAGEIRO = mensageiro;
             this.ENDERECO_DO_SERVIDOR = enderecoServidor;
             this.INTERPRETADOR = interpretador;
+            
+            this.GERENCIADOR_DE_PORTAS = new GerenciadorDePortas(inicioIntervaloUDP, fimIntervaloUDP);
         }
         
         
@@ -172,7 +222,7 @@ public abstract class Stub implements Closeable {
         public void iniciarPedidoDeAberturaUDP() {
             try {
                 if(!this.MENSAGEIRO.comunicadorUDPEstaAberto()) {
-                    this.MENSAGEIRO.iniciarUDP(-1);
+                    this.MENSAGEIRO.iniciarUDP(GERENCIADOR_DE_PORTAS.getPorta());
                     
                     int portaDeEscutaServidor = this.MENSAGEIRO.getPortaEscutaUDP();
                     byte[] mensagem = this.INTERPRETADOR.codificarAtenderPedidoInicioDeAberturaUDP(portaDeEscutaServidor);
@@ -202,7 +252,7 @@ public abstract class Stub implements Closeable {
         public void atenderPedidoInicioDeAberturaUDP(int portaUDPServidor) {
             try {
                 if(!this.MENSAGEIRO.comunicadorUDPEstaAberto()) {
-                    this.MENSAGEIRO.iniciarUDP(-1);
+                    this.MENSAGEIRO.iniciarUDP(GERENCIADOR_DE_PORTAS.getPorta());
                 }
                 
                 switch(this.estado) {
@@ -230,6 +280,7 @@ public abstract class Stub implements Closeable {
             } catch(IOException ioe) {
                 Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro ao tentar iniciar a comunicacao.", ioe);
                 this.SEMAFORO_ATIVACAO_UDP.release();
+                ioe.printStackTrace();
                 throw new RuntimeException("Nao foi possivel iniciar a comunicacao com o servidor");
             }
         }
@@ -291,6 +342,7 @@ public abstract class Stub implements Closeable {
             this.hostProntoParaReceberUDP = false;
             this.iniciouProcessoDeAbertura = false;*/
             this.estado = DESATIVADO;
+            this.GERENCIADOR_DE_PORTAS.liberarPorta(this.MENSAGEIRO.getPortaEscutaUDP());
             this.MENSAGEIRO.encerrarUDP();
         }
     }

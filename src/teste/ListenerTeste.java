@@ -1,7 +1,8 @@
-package comunicacao_geral;
+package teste;
 
 import Logger.Logger;
 import static Logger.Logger.Tipo.INFO;
+import comunicacao_geral.GerenciadorDeRequisicao;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -13,7 +14,7 @@ import stub.comunicacao.FalhaDeComunicacaoEmTempoRealException;
 /**
  * 
  */
-public class Listener implements Runnable {
+public class ListenerTeste implements Runnable {
     
     private final InetSocketAddress PORTA_DE_ESCUTA_SERVIDOR;
     private final int PORTA;
@@ -22,7 +23,7 @@ public class Listener implements Runnable {
     private ServerSocket socketDoServidor = null;
     private boolean escutar = true;
     
-    public Listener(InetAddress enderecoEscuta, int portaDeEscutaTCP, GerenciadorDeRequisicao gerenciadorDeRequisicao) {
+    public ListenerTeste(InetAddress enderecoEscuta, int portaDeEscutaTCP, GerenciadorDeRequisicao gerenciadorDeRequisicao) {
         this.PORTA_DE_ESCUTA_SERVIDOR = new InetSocketAddress(enderecoEscuta, portaDeEscutaTCP);
         this.PORTA = portaDeEscutaTCP;
         this.GERENCIADOR_DE_REQUISICAO = gerenciadorDeRequisicao;
@@ -67,6 +68,7 @@ public class Listener implements Runnable {
         try {
             this.socketDoServidor = new ServerSocket();
             this.socketDoServidor.bind(PORTA_DE_ESCUTA_SERVIDOR);
+            System.out.println("Servidor escutando: " + this.socketDoServidor.getLocalSocketAddress() + ":" + this.socketDoServidor.getLocalPort());
         } catch (IOException e) {
             throw new RuntimeException("Nao eh possivel abrir um socket na porta " + PORTA + ": " + e.getMessage());
         }

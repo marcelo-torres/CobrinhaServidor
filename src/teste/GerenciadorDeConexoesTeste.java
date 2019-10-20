@@ -11,7 +11,7 @@ public class GerenciadorDeConexoesTeste  implements GerenciadorDeRequisicao {
     public void gerenciarRequisicao(Socket socket) {
         
         JogadorTeste jogador = new JogadorTeste();
-        GerenciadorDeCliente gerenciadorDeCliente = new GerenciadorDeCliente(jogador, socket);
+        GerenciadorDeCliente gerenciadorDeCliente = new GerenciadorDeCliente(jogador, socket, 51300, 51310);
         gerenciadorDeCliente.iniciarStub();
         
         gerenciadorDeCliente.novoQuadro(new Arena(10, 10, 10));
@@ -28,5 +28,6 @@ public class GerenciadorDeConexoesTeste  implements GerenciadorDeRequisicao {
         gerenciadorDeCliente.falha("MENSAGEM DE FALHA");
     
         gerenciadorDeCliente.procurandoPartida();
+        
     }
 }
