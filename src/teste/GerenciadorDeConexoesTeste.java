@@ -12,6 +12,7 @@ public class GerenciadorDeConexoesTeste  implements GerenciadorDeRequisicao {
         
         JogadorTeste jogador = new JogadorTeste();
         GerenciadorDeCliente gerenciadorDeCliente = new GerenciadorDeCliente(jogador, socket);
+        gerenciadorDeCliente.iniciarStub();
         
         gerenciadorDeCliente.novoQuadro(new Arena(10, 10, 10));
         gerenciadorDeCliente.exibirTelaSessao();

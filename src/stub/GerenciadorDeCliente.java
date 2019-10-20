@@ -22,6 +22,7 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
     private final IJogadorVisaoStubServidor JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
     private final GerenciadorDeConexaoUDPRemota GERENCIADOR_CONEXAO_UDP;
+    private final Socket SOCKET;
     
     public GerenciadorDeCliente(IJogadorVisaoStubServidor jogador, Socket socket) {
         super(Comunicador.Modo.SERVIDOR,
@@ -29,12 +30,15 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
                 socket.getPort());
         
         this.JOGADOR = jogador;
+        this.SOCKET = socket;
         
         this.ENDERECO_DO_SERVIDOR = socket.getInetAddress();
         this.GERENCIADOR_CONEXAO_UDP = new GerenciadorDeConexaoUDPRemota(this.MENSAGEIRO, this.ENDERECO_DO_SERVIDOR, this.INTERPRETADOR);
-        this.INTERPRETADOR.cadastrarComandos(this.criarComandosNecessarios());
-        
-        super.iniciar(socket);
+        this.INTERPRETADOR.cadastrarComandos(this.criarComandosNecessarios());  
+    }
+    
+    public void iniciarStub() {
+        super.iniciar(this.SOCKET);
     }
     
     @Override
