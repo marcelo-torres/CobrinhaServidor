@@ -37,7 +37,7 @@ public abstract class Comunicador {
     protected enum TipoMensagem {
         KEEP_ALIVE(0),
         MENSAGEM_COMUM(1),
-        FECHAR_CONEXAO(2),
+        ACK_FECHAR_CONEXAO(2),
         PEDIR_FECHAMENTO_CONEXAO(3);
         
         private final int TIPO_MENSAGEM;
@@ -106,19 +106,24 @@ public abstract class Comunicador {
      */
     protected static class SynchronizedObjectOutputStreamWrapper implements Closeable {
     
-        ObjectOutputStream SAIDA;
+        private ObjectOutputStream SAIDA;
+        private boolean aberto = true;
         
         public SynchronizedObjectOutputStreamWrapper(ObjectOutputStream saida) {
             this.SAIDA = saida;
         }
         
         public synchronized void writeAndFlush(Object objeto) throws IOException {
+            if(!this.aberto) {
+                return;
+            }
             this.SAIDA.writeObject(objeto);
             this.SAIDA.flush();
         }
         
         @Override
         public synchronized void close() throws IOException {
+            this.aberto = false;
             this.SAIDA.close();
         }
     }
@@ -129,14 +134,17 @@ public abstract class Comunicador {
      */
     protected static class TarefaEnviarKeepAlive extends TimerTask {
     
+        private final EnviadorKeepAlive ENVIADOR_DE_KEEP_ALIVE;
         private final Comunicador COMUNICADOR;
         private final UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
         private final SynchronizedObjectOutputStreamWrapper WRAPPED_OUTPUT;
 ;        
         public TarefaEnviarKeepAlive(
+                EnviadorKeepAlive enviadorKeepAlive,
                 Comunicador comunicador,
                 SynchronizedObjectOutputStreamWrapper wrappedOutput,
                 UncaughtExceptionHandler gerenciadorDeException) {
+            this.ENVIADOR_DE_KEEP_ALIVE = enviadorKeepAlive;
             this.COMUNICADOR = comunicador;
             this.WRAPPED_OUTPUT = wrappedOutput;
             this.GERENCIADOR_DE_EXCEPTION = gerenciadorDeException;
@@ -144,14 +152,16 @@ public abstract class Comunicador {
         
         @Override
         public void run() {
-            try {
-                MensagemComunicador mensagemKeepAlive = new MensagemComunicador(this.COMUNICADOR.incrementarEObterNumeroDeSequenciaDeEnvio(), TipoMensagem.KEEP_ALIVE, null);
-                this.WRAPPED_OUTPUT.writeAndFlush(mensagemKeepAlive);
-            } catch(IOException ioe) {
-                FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel mandar a mensagem de keep alive: " + ioe.getMessage(), ioe);
-                this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
-            } catch(Exception e) {
-                this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), e);     
+            if(this.ENVIADOR_DE_KEEP_ALIVE.estaAberto()) {
+                try {
+                    MensagemComunicador mensagemKeepAlive = new MensagemComunicador(this.COMUNICADOR.incrementarEObterNumeroDeSequenciaDeEnvio(), TipoMensagem.KEEP_ALIVE, null);
+                    this.WRAPPED_OUTPUT.writeAndFlush(mensagemKeepAlive);
+                } catch(IOException ioe) {
+                    FalhaDeComunicacaoEmTempoRealException exception = new FalhaDeComunicacaoEmTempoRealException("Nao foi possivel mandar a mensagem de keep alive: " + ioe.getMessage(), ioe);
+                    this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), exception);
+                } catch(Exception e) {
+                    this.GERENCIADOR_DE_EXCEPTION.uncaughtException(Thread.currentThread(), e);     
+                }
             }
         }
     }
@@ -169,6 +179,8 @@ public abstract class Comunicador {
         
         private ScheduledExecutorService scheduler;
         private ScheduledFuture tarefasRestantes;
+        
+        private boolean aberto = false;
         
         public EnviadorKeepAlive(
             Comunicador comunicador,
@@ -194,15 +206,31 @@ public abstract class Comunicador {
             
             long delayInicial = 0;
             this.tarefasRestantes = this.scheduler.scheduleAtFixedRate(
-                    new TarefaEnviarKeepAlive(this.COMUNICADOR, this.WRAPPED_OUTPUT, GERENCIADOR_DE_EXCEPTION),
+                    new TarefaEnviarKeepAlive(this, this.COMUNICADOR, this.WRAPPED_OUTPUT, GERENCIADOR_DE_EXCEPTION),
                     delayInicial,
                     this.INTERVALO_ENVIO,
                     TimeUnit.MILLISECONDS);
+            
+            this.aberto = true;
         }
         
         public void encerrar() {
+            this.aberto = false;
             this.tarefasRestantes.cancel(false);
-            this.scheduler.shutdownNow();
+            //this.scheduler.shutdownNow();
+            
+            this.scheduler.shutdown();
+            try {
+                if (!this.scheduler.awaitTermination(4, TimeUnit.SECONDS)) {
+                  this.scheduler.shutdownNow();
+                }
+            } catch (InterruptedException ie) {
+              this.scheduler.shutdownNow();
+            }
+        }
+        
+        public boolean estaAberto() {
+            return this.aberto;
         }
         
         private void validarParametros(
@@ -271,6 +299,8 @@ public abstract class Comunicador {
         private ScheduledExecutorService scheduler;
         private ScheduledFuture tarefasRestantes;
         
+        private boolean ativado = false;
+        
         /**
          * 
          * @param limiteDeTempo Tempo limite em ms
@@ -285,12 +315,23 @@ public abstract class Comunicador {
         }
         
         public void iniciar() {
+            this.ativado= true;
             this.reiniciar();
         }
         
         public void encerrar() {
+            this.ativado = false;
             this.tarefasRestantes.cancel(false);
-            this.scheduler.shutdownNow();
+            //this.scheduler.shutdownNow();
+            
+            this.scheduler.shutdown();
+            try {
+                if (!this.scheduler.awaitTermination(4, TimeUnit.SECONDS)) {
+                  this.scheduler.shutdownNow();
+                }
+            } catch (InterruptedException ie) {
+              this.scheduler.shutdownNow();
+            }
         }
         
         public synchronized void incrementarQuantidadeDeMensagensRecebidas() {
@@ -305,6 +346,10 @@ public abstract class Comunicador {
         }
         
         private synchronized void reiniciar() {
+            if(!this.ativado) {
+                return;
+            }
+            
             if(this.tarefasRestantes != null) {
                 this.tarefasRestantes.cancel(false);
             }
