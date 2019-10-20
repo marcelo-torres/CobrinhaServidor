@@ -11,6 +11,7 @@ import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
 import model.Jogador;
 import model.agentes.IControladorGeralVisaoAplicacaoServidor;
+import model.agentes.IJogadorVisaoStubServidor;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
@@ -18,25 +19,22 @@ import stub.comunicacao.Comunicador;
 
 public class GerenciadorDeCliente extends Stub implements IControladorGeralVisaoAplicacaoServidor {
     
-    private Jogador JOGADOR;
+    private final IJogadorVisaoStubServidor JOGADOR;
     private final InetAddress ENDERECO_DO_SERVIDOR;
     private final GerenciadorDeConexaoUDPRemota GERENCIADOR_CONEXAO_UDP;
     
-    public GerenciadorDeCliente(Socket socket) {
+    public GerenciadorDeCliente(IJogadorVisaoStubServidor jogador, Socket socket) {
         super(Comunicador.Modo.SERVIDOR,
                 socket.getInetAddress(),
                 socket.getPort());
-            
-          
+        
+        this.JOGADOR = jogador;
+        
         this.ENDERECO_DO_SERVIDOR = socket.getInetAddress();
         this.GERENCIADOR_CONEXAO_UDP = new GerenciadorDeConexaoUDPRemota(this.MENSAGEIRO, this.ENDERECO_DO_SERVIDOR, this.INTERPRETADOR);
         this.INTERPRETADOR.cadastrarComandos(this.criarComandosNecessarios());
         
         super.iniciar(socket);
-    }
-
-    public void setJogador(Jogador jogador) {
-        this.JOGADOR = JOGADOR;
     }
     
     @Override
@@ -49,17 +47,59 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
         this.INTERPRETADOR.interpretar(mensagem);
     }
     
+    @Override
+    protected void devolverRetorno(byte[] mensagemRetorno) {
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagemRetorno);
+    }
+    
     /* ########################### CHAMADAS DE RPC ########################## */
 
     @Override
+    public void novoQuadro(Arena arena) {
+        byte[] mensagem = this.INTERPRETADOR.codificarNovoQuadro(arena);
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
+   @Override
+    public void exibirTelaSessao() {
+        byte[] mensagem = this.INTERPRETADOR.codificarExibirTelaSessao();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
+    @Override
+    public void exibirTelaBusca() {
+        byte[] mensagem = this.INTERPRETADOR.codificarExibirTelaBusca();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+
+    @Override
+    public void exibirTelaJogo() {
+        byte[] mensagem = this.INTERPRETADOR.codificarExibirTelaJogo();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
+    @Override
+    public void exibirTelaInicio() {
+        byte[] mensagem = this.INTERPRETADOR.codificarExibirTelaInicio();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
+    
+    @Override
     public void perdeu() {
-        byte[] mensagem = this.INTERPRETADOR.codificarVocerPerdeu();
+        byte[] mensagem = this.INTERPRETADOR.codificarPerdeu();
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
 
     @Override
     public void ganhou() {
-        byte[] mensagem = this.INTERPRETADOR.codificarVoceGanhou();
+        byte[] mensagem = this.INTERPRETADOR.codificarGanhou();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
+    }
+    
+    @Override
+    public void empatou() {
+        byte[] mensagem = this.INTERPRETADOR.codificarEmpatou();
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
     
@@ -68,21 +108,7 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
         byte[] mensagem = this.INTERPRETADOR.codificarAdversarioSaiu();
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
-
-    @Override
-    public void exibirTelaSessao() { //era ir para hall, mudei aqui||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-        byte[] mensagem = this.INTERPRETADOR.codificarIrParaOHall();
-        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
-    }
-
-    /*
-    @Override
-    public void logar(String login) {
-        byte[] mensagem = this.INTERPRETADOR.codificarLogar(login);
-        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
-    }
-    */
-
+    
     @Override
     public void falhaAoLogar(String mensagemTextual) {
         byte[] mensagem = this.INTERPRETADOR.codificarFalhaAoLogar(mensagemTextual);
@@ -90,71 +116,44 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
     }
     
     @Override
-    public void novoQuadro(Arena arena) {
-        byte[] mensagem = this.INTERPRETADOR.codificarEntregarQuadro(arena);
+    public void falha(String stringFalha) {
+        byte[] mensagem = this.INTERPRETADOR.codificarFalha(stringFalha);
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
     
     @Override
-    protected void devolverRetorno(byte[] mensagemRetorno) {
-        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagemRetorno);
+    public void procurandoPartida() {
+        byte[] mensagem = this.INTERPRETADOR.codificarProcurandoPartida();
+        this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
     
-    @Override
-    public void empatou() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void falha(String nome_inválido) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void exibirTelaJogo() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void procurandoPartida() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void exibirTelaBusca() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void exibirTelaInicio() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
     
     @Override
     protected LinkedList<Comando> criarComandosNecessarios() {
         
         LinkedList<Comando> listaDeComandos = new LinkedList<>();
         
+        listaDeComandos.add(new IniciarSessao("iniciarSessao", this.JOGADOR));
+        listaDeComandos.add(new IniciarPartida("iniciarPartida", this.JOGADOR));
+        listaDeComandos.add(new DesistirDeProcurarPartida("desistirDeProcurarPartida", this.JOGADOR));
+        listaDeComandos.add(new EncerrarPartida("encerrarPartida", this.JOGADOR));
+        
+        listaDeComandos.add(new AndarParaCima("andarParaCima", this.JOGADOR));
+        listaDeComandos.add(new AndarParaBaixo("andarParaBaixo", this.JOGADOR));
+        listaDeComandos.add(new AndarParaEsquerda("andarParaEsquerda", this.JOGADOR));
+        listaDeComandos.add(new AndarParaDireita("andarParaDireita", this.JOGADOR));
+        listaDeComandos.add(new EncerrarSessao("encerrarSessao", this.JOGADOR));
+        
+        // Mensagem de debug
         listaDeComandos.add(new ComandoExibirMensagem("exibirMensagem"));
+        
+        // Comandos do gerenciador de UDP
         listaDeComandos.add(new AtenderPedidoInicioDeAberturaUDP("atenderPedidoInicioDeAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new ContinuarAberturaUDP("continuarAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new FecharConexaoUDP("fecharConexaoUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new IniciarFechamentoConexaoUDP("iniciarFechamentoConexaoUDP", this.GERENCIADOR_CONEXAO_UDP));
         listaDeComandos.add(new IniciarPedidoDeAberturaUDP("iniciarPedidoDeAberturaUDP", this.GERENCIADOR_CONEXAO_UDP));
         
-        listaDeComandos.add(new AndarParaBaixo("andarParaBaixo", this.JOGADOR));
-        listaDeComandos.add(new AndarParaCima("andarParaCima", this.JOGADOR));
-        listaDeComandos.add(new AndarParaDireita("andarParaDireita", this.JOGADOR));
-        listaDeComandos.add(new AndarParaEsquerda("andarParaEsquerda", this.JOGADOR));
-        listaDeComandos.add(new DesistirDeProcurarPartida("desistirDeProcurarPartida", this.JOGADOR));
-        listaDeComandos.add(new EncerrarPartida("encerrarPartida", this.JOGADOR));
-        listaDeComandos.add(new IniciarPartida("iniciarPartida", this.JOGADOR));
-        
-        listaDeComandos.add(new GetVD("getVD", this.JOGADOR));
-        /*
-        listaDeComandos.add(new GetLocalAtual("getLocalAtual", this.JOGADOR));
-        listaDeComandos.add(new SetLocalAtual("setLocalAtual", this.JOGADOR));
-        */
         return listaDeComandos;
     }
 

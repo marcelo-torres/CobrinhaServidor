@@ -6,12 +6,11 @@ import model.agentes.IJogadorVisaoStubServidor;
 public class EncerrarPartida extends ComandoJogador {
     
     public EncerrarPartida(String codigo, IJogadorVisaoStubServidor jogador) {
-        super(codigo, false, jogador);
+        super(codigo, true, jogador);
     }
 
     @Override
     public Object executar(Parametros parametros) {
-        super.JOGADOR.encerrarPartida();
-        return null;
+        return super.JOGADOR.encerrarPartida();
     }
 }

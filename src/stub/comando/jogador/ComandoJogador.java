@@ -7,8 +7,8 @@ public abstract class ComandoJogador extends Comando {
 
     protected final IJogadorVisaoStubServidor JOGADOR;
     
-    public ComandoJogador(String codigo, boolean possuiParametro, IJogadorVisaoStubServidor jogador) {
-        super(codigo, possuiParametro);
+    public ComandoJogador(String codigo, boolean possuiRetorno, IJogadorVisaoStubServidor jogador) {
+        super(codigo, possuiRetorno);
         this.JOGADOR = jogador;
     }
     

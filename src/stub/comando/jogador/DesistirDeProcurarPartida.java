@@ -6,12 +6,11 @@ import model.agentes.IJogadorVisaoStubServidor;
 public class DesistirDeProcurarPartida extends ComandoJogador {
     
     public DesistirDeProcurarPartida(String codigo, IJogadorVisaoStubServidor jogador) {
-        super(codigo, false, jogador);
+        super(codigo, true, jogador);
     }
 
     @Override
     public Object executar(Parametros parametros) {
-        super.JOGADOR.desistirDeProcurarPartida();
-        return null;
+        return super.JOGADOR.desistirDeProcurarPartida();
     }
 }

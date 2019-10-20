@@ -3,7 +3,7 @@ package stub.comando.controlador_de_partida;
 import model.send.Arena;
 import stub.comando.Parametros;
 
-public class EntregarQuadroParametro extends Parametros {
+public class NovoQuadroParametro extends Parametros {
     
     private Arena arena;
     

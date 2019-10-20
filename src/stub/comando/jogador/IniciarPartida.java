@@ -6,12 +6,11 @@ import model.agentes.IJogadorVisaoStubServidor;
 public class IniciarPartida extends ComandoJogador {
     
     public IniciarPartida(String codigo, IJogadorVisaoStubServidor jogador) {
-        super(codigo, false, jogador);
+        super(codigo, true, jogador);
     }
 
     @Override
     public Object executar(Parametros parametros) {
-        super.JOGADOR.iniciarPartida();
-        return null;
+        return super.JOGADOR.iniciarPartida();
     }
 }

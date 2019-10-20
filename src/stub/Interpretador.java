@@ -10,18 +10,15 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
-import localizacoes.ILocal;
 import model.send.Arena;
 import stub.comando.Comando;
 
 import stub.comando.ComandoExibirMensagemParametros;
 import stub.comando.Parametros;
-import stub.comando.controlador_de_partida.EntregarQuadroParametro;
-import stub.comando.controlador_de_partida.FalhaAoLogarParametros;
-import stub.comando.controlador_de_partida.LogarParametros;
+import stub.comando.controlador_de_partida.*;
 import stub.comando.gerenciador_de_udp.AtenderPedidoInicioDeAberturaUDPParametros;
 import stub.comando.gerenciador_de_udp.ContinuarAberturaUDPParametros;
-import stub.comando.jogador.SetLocalAtualParametros;
+import stub.comando.jogador.IniciarSessaoParametros;
 import stub.comunicacao.FilaMonitorada;
 
 /**
@@ -241,23 +238,15 @@ public class Interpretador {
     
     /* ########################## COMANDO JOGADOR ########################### */
     
-    public byte[] codificarAndarParaBaixo() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaBaixo");
+    public byte[] codificarIniciarSessao(String nomeJogador) {
+        IniciarSessaoParametros iniciarSessaoParametros = new IniciarSessaoParametros();
+        iniciarSessaoParametros.setNomeJogador(nomeJogador);
+        byte[] mensagem = this.empacotarChamadaDeMetodo("iniciarSessao", iniciarSessaoParametros);
         return mensagem;
     }
     
-    public byte[] codificarAndarParaCima() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaCima");
-        return mensagem;
-    }
-    
-    public byte[] codificarAndarParaDireita() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaDireita");
-        return mensagem;
-    }
-    
-    public byte[] codificarAndarParaEsquerda() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaEsquerda");
+    public byte[] codificarIniciarPartida() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("iniciarPartida");
         return mensagem;
     }
     
@@ -271,38 +260,75 @@ public class Interpretador {
         return mensagem;
     }
     
-    public byte[] codificarIniciarPartida() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("iniciarPartida");
+    
+    public byte[] codificarAndarParaCima() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaCima");
         return mensagem;
     }
     
-    public byte[] codificarGetVD() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("getVD");
+    public byte[] codificarAndarParaBaixo() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaBaixo");
         return mensagem;
     }
     
-    public byte[] codificarSetLocalAtual(ILocal local) {
-        SetLocalAtualParametros parametros = new SetLocalAtualParametros();
-        parametros.setLocal(local);
-        byte[] mensagem = this.empacotarChamadaDeMetodo("setLocalAtual", parametros);
+    public byte[] codificarAndarParaDireita() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaDireita");
         return mensagem;
     }
     
-    public byte[] codificarGetLocalAtual() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("getLocalAtual");
+    public byte[] codificarAndarParaEsquerda() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("andarParaEsquerda");
+        return mensagem;
+    }
+    
+    public byte[] codificarEncerrarSessao() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("encerrarSessao");
         return mensagem;
     }
     
     
     /* ################### COMANDO CONTROLADOR DE PARTIDA ################### */
     
-    public byte[] codificarVocerPerdeu() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("vocePerdeu");
+    public byte[] codificarNovoQuadro(Arena arena) {
+        NovoQuadroParametro parametros = new NovoQuadroParametro();
+        parametros.setArena(arena);
+        byte[] mensagem = this.empacotarChamadaDeMetodo("novoQuadro", parametros);
+        return mensagem;
+    }
+    
+    public byte[] codificarExibirTelaSessao() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("exibirTelaSessao");
+        return mensagem;
+    }
+    
+    public byte[] codificarExibirTelaBusca() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("exibirTelaBusca");
+        return mensagem;
+    }
+    
+    public byte[] codificarExibirTelaJogo() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("exibirTelaJogo");
+        return mensagem;
+    }
+    
+    public byte[] codificarExibirTelaInicio() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("exibirTelaInicio");
+        return mensagem;
+    }
+    
+    
+    public byte[] codificarPerdeu() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("perdeu");
         return mensagem;
     }
 
-    public byte[] codificarVoceGanhou() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("voceGanhou");
+    public byte[] codificarGanhou() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("ganhou");
+        return mensagem;
+    }
+    
+    public byte[] codificarEmpatou() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("empatou");
         return mensagem;
     }
 
@@ -310,19 +336,7 @@ public class Interpretador {
         byte[] mensagem = this.empacotarChamadaDeMetodo("adversarioSaiu");
         return mensagem;
     }
-
-    public byte[] codificarIrParaOHall() {
-        byte[] mensagem = this.empacotarChamadaDeMetodo("irParaOHall");
-        return mensagem;
-    }
-
-    public byte[] codificarLogar(String login) {
-        LogarParametros parametros = new LogarParametros();
-        parametros.setLogin(login);
-        byte[] mensagem = this.empacotarChamadaDeMetodo("logar", parametros);
-        return mensagem;
-    }
-
+    
     public byte[] codificarFalhaAoLogar(String mensagemTextual) {
         FalhaAoLogarParametros parametros = new FalhaAoLogarParametros();
         parametros.setMensagem(mensagemTextual);
@@ -330,10 +344,16 @@ public class Interpretador {
         return mensagem;
     }
     
-    public byte[] codificarEntregarQuadro(Arena arena) {
-        EntregarQuadroParametro parametros = new EntregarQuadroParametro();
-        parametros.setArena(arena);
-        byte[] mensagem = this.empacotarChamadaDeMetodo("entregarQuadro", parametros);
+    public byte[] codificarFalha(String mensagemTextual) {
+        FalhaParametros parametros = new FalhaParametros();
+        parametros.setMensagem(mensagemTextual);
+        byte[] mensagem = this.empacotarChamadaDeMetodo("falha", parametros);
+        return mensagem;
+    }
+    
+    
+    public byte[] codificarProcurandoPartida() {
+        byte[] mensagem = this.empacotarChamadaDeMetodo("procurandoPartida");
         return mensagem;
     }
     
@@ -370,8 +390,10 @@ public class Interpretador {
             Object objeto = in.readObject();
             return objeto;
         } catch (IOException ioe) {
+            ioe.printStackTrace();
             return null;
         } catch (ClassNotFoundException cnfe) {
+            cnfe.printStackTrace();
             return null;
         } finally {
             try {
