@@ -11,7 +11,7 @@ public class IniciarSessao extends ComandoJogador {
 
     @Override
     public Object executar(Parametros parametros) {
-        IniciarSessaoParametros iniciarSessaoParametros = new IniciarSessaoParametros();
+        IniciarSessaoParametros iniciarSessaoParametros = (IniciarSessaoParametros) parametros;
         super.JOGADOR.iniciarSessao(iniciarSessaoParametros.getNomeJogador());
         return null;
     }
