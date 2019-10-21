@@ -13,6 +13,13 @@ public class GerenciadorDePortas {
 
     private final boolean ALEATORIO;
 
+    public GerenciadorDePortas() {
+        this.ALEATORIO = true;
+        
+        this.INICIO_INTERVALO = -1;
+        this.FIM_INTERVALO = -1;
+    }
+    
     public GerenciadorDePortas(int inicioIntervalo, int fimIntervalo) {
         this.ALEATORIO = (fimIntervalo - inicioIntervalo < 0);
 

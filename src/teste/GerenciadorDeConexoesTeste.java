@@ -4,6 +4,7 @@ import comunicacao_geral.GerenciadorDeRequisicao;
 import java.net.Socket;
 import model.send.Arena;
 import stub.GerenciadorDeCliente;
+import stub.comunicacao.GerenciadorDePortas;
 
 public class GerenciadorDeConexoesTeste  implements GerenciadorDeRequisicao {
 
@@ -11,7 +12,9 @@ public class GerenciadorDeConexoesTeste  implements GerenciadorDeRequisicao {
     public void gerenciarRequisicao(Socket socket) {
         
         JogadorTeste jogador = new JogadorTeste();
-        GerenciadorDeCliente gerenciadorDeCliente = new GerenciadorDeCliente(jogador, socket, 51300, 51310);
+        
+        GerenciadorDePortas gerenciadorDePortas = new GerenciadorDePortas(51300, 51310);
+        GerenciadorDeCliente gerenciadorDeCliente = new GerenciadorDeCliente(jogador, socket, gerenciadorDePortas);
         gerenciadorDeCliente.iniciarStub();
         
         gerenciadorDeCliente.novoQuadro(new Arena(10, 10, 10));

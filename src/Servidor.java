@@ -6,6 +6,8 @@ import java.net.UnknownHostException;
 
 public class Servidor implements Runnable {
  
+    private final int NUMERO_MAXIMO_CONEXOES = 10;
+    
     private final InetAddress ENDERECO_ESCUTA;
     private final int PORTA;
     private Listener listener;
@@ -21,7 +23,8 @@ public class Servidor implements Runnable {
     
     @Override
     public void run() {
-        this.listener = new Listener(this.ENDERECO_ESCUTA, this.PORTA, new GerenciadorDeConexoes(this.controladorGeral));
+        GerenciadorDeConexoes gerenciadorDeConexoes = new GerenciadorDeConexoes(this.NUMERO_MAXIMO_CONEXOES, this.controladorGeral);
+        this.listener = new Listener(this.ENDERECO_ESCUTA, this.PORTA, gerenciadorDeConexoes);
         this.listener.run();
     }
     

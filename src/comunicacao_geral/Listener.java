@@ -22,7 +22,7 @@ public class Listener implements Runnable {
     private ServerSocket socketDoServidor = null;
     private boolean escutar = true;
     
-    public Listener(InetAddress enderecoEscuta, int portaDeEscutaTCP, GerenciadorDeRequisicao gerenciadorDeRequisicao) {
+    public Listener(InetAddress enderecoEscuta, int portaDeEscutaTCP,  GerenciadorDeRequisicao gerenciadorDeRequisicao) {
         this.PORTA_DE_ESCUTA_SERVIDOR = new InetSocketAddress(enderecoEscuta, portaDeEscutaTCP);
         this.PORTA = portaDeEscutaTCP;
         this.GERENCIADOR_DE_REQUISICAO = gerenciadorDeRequisicao;
