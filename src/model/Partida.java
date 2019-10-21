@@ -49,11 +49,12 @@ public class Partida {
             cobra2.add(posicao);
         }
         
+        alimentos = new ArrayList<>();//
         for (int i = 0; i < 4; i++) {
             setNovoAlimento();
         }
         
-        alimentos = new ArrayList<>();
+        //alimentos = new ArrayList<>();
         for(int i = 0; i < arena.getAlimentos().size(); i++){
             Alimento alimento = (Alimento)arena.getAlimentos().get(i);
             Posicao posicao = new Posicao(arena.getTamanho());            

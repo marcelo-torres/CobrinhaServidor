@@ -18,9 +18,9 @@ import java.util.logging.Logger;
  */
 public class DAO {
     private AcessoBanco acesso;
-    private Object lockerDerrotas;
-    private Object lockerVitorias;
-    private Object lockerEmpates;
+    private final Object lockerDerrotas = new Object();
+    private final Object lockerVitorias = new Object();
+    private final Object lockerEmpates = new Object();
     
     public DAO() throws SQLException{
         acesso = AcessoBanco.getAcesso();
@@ -37,6 +37,22 @@ public class DAO {
             String query = ("SELECT nome FROM jogadores WHERE nome = '" + nome + "';");
         
             ResultSet rs = null;
+
+            Statement statement = null;
+            try {
+                statement = con.createStatement();
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
+            
+            try {
+                rs = statement.executeQuery(query);
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
+            
             try {
                 
                 if(rs == null || rs.getString("nome") == null || rs.getString("nome").isEmpty()){
@@ -116,8 +132,23 @@ public class DAO {
             String query = ("SELECT derrotas FROM jogadores WHERE nome = '" + nome + "';");
         
             ResultSet rs = null;
+            Statement statement = null;
             try {
-                int derrotas = rs.getInt("derrotas");
+                statement = con.createStatement();
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
+            
+            try {
+                rs = statement.executeQuery(query);
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
+            
+            try {
+                int derrotas = rs.getInt(0);
                 acesso.executarQuery("UPDATE jogadores SET derrotas = " + (derrotas + 1) + " WHERE nome = '" + nome + "';");
                 return true;
                 
@@ -137,6 +168,20 @@ public class DAO {
             String query = ("SELECT vitorias FROM jogadores WHERE nome = '" + nome + "';");
         
             ResultSet rs = null;
+            Statement statement = null;
+            try {
+                statement = con.createStatement();
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
+            
+            try {
+                rs = statement.executeQuery(query);
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
             
             
             try {
@@ -160,6 +205,20 @@ public class DAO {
             String query = ("SELECT empates FROM jogadores WHERE nome = '" + nome + "';");
         
             ResultSet rs = null;
+            Statement statement = null;
+            try {
+                statement = con.createStatement();
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
+            
+            try {
+                rs = statement.executeQuery(query);
+            } catch (SQLException ex) {
+                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+
+            }
             try {
                 int empates = rs.getInt("empates");
                 acesso.executarQuery("UPDATE jogadores SET empates = " + (empates + 1) + " WHERE nome = '" + nome + "';");
