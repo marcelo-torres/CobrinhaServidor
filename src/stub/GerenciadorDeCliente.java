@@ -9,12 +9,12 @@ import java.util.LinkedList;
 import model.send.Arena;
 import stub.comando.Comando;
 import stub.comando.ComandoExibirMensagem;
-import model.Jogador;
 import model.agentes.IControladorGeralVisaoAplicacaoServidor;
 import model.agentes.IJogadorVisaoStubServidor;
 import stub.comando.gerenciador_de_udp.*;
 import stub.comando.jogador.*;
 import stub.comunicacao.Comunicador;
+import stub.comunicacao.GerenciadorDePortas;
 
 
 public class GerenciadorDeCliente extends Stub implements IControladorGeralVisaoAplicacaoServidor {
@@ -24,8 +24,9 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
     private final GerenciadorDeConexaoUDPRemota GERENCIADOR_CONEXAO_UDP;
     private final Socket SOCKET;
     
-    public GerenciadorDeCliente(IJogadorVisaoStubServidor jogador, Socket socket, int inicioIntervaloUDP, int fimIntervaloUDP) {
+    public GerenciadorDeCliente(IJogadorVisaoStubServidor jogador, Socket socket, GerenciadorDePortas gerenciadorDePortas) {
         super(Comunicador.Modo.SERVIDOR,
+                gerenciadorDePortas,
                 socket.getInetAddress(),
                 socket.getPort());
         
@@ -33,7 +34,7 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
         this.SOCKET = socket;
         
         this.ENDERECO_DO_SERVIDOR = socket.getInetAddress();
-        this.GERENCIADOR_CONEXAO_UDP = new GerenciadorDeConexaoUDPRemota(this.MENSAGEIRO, this.ENDERECO_DO_SERVIDOR, this.INTERPRETADOR,inicioIntervaloUDP, fimIntervaloUDP);
+        this.GERENCIADOR_CONEXAO_UDP = new GerenciadorDeConexaoUDPRemota(this.MENSAGEIRO, this.ENDERECO_DO_SERVIDOR, this.INTERPRETADOR, gerenciadorDePortas);
         this.INTERPRETADOR.cadastrarComandos(this.criarComandosNecessarios());  
     }
     

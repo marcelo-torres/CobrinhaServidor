@@ -16,6 +16,7 @@ import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.ATIVANDO;
 import static stub.Stub.GerenciadorDeConexaoUDPRemota.Estado.DESATIVADO;
 import stub.comando.Comando;
 import stub.comunicacao.Comunicador;
+import stub.comunicacao.GerenciadorDePortas;
 import stub.comunicacao.Mensageiro;
 
 public abstract class Stub implements Closeable {
@@ -23,11 +24,13 @@ public abstract class Stub implements Closeable {
     private final GerenciadorDeException GERENCIADOR_DE_EXCEPTION;
     protected final Mensageiro MENSAGEIRO;
     protected final Interpretador INTERPRETADOR = new Interpretador(this);
+    protected final GerenciadorDePortas GERENCIADOR_DE_PORTAS;
     
     private Receptor receptor;
     private Thread threadDeRecepcao;
     
     public Stub(Comunicador.Modo modo,
+                GerenciadorDePortas gerenciadorDePortas,
                 InetAddress enderecoDoServidor,
                 int portaTCPDoServidor) {
         
@@ -38,6 +41,8 @@ public abstract class Stub implements Closeable {
                 enderecoDoServidor,
                 portaTCPDoServidor,
                 this.GERENCIADOR_DE_EXCEPTION);
+        
+        this.GERENCIADOR_DE_PORTAS = gerenciadorDePortas;
     }
     
     public abstract void receberMensagem(byte[] mensagem);
@@ -154,47 +159,6 @@ public abstract class Stub implements Closeable {
         //private boolean iniciouProcessoDeAbertura = false;
         //private boolean encerramentoSolicitado = false;
         
-        public static class GerenciadorDePortas {
-        
-            private LinkedList<Integer> PORTAS_DISPONIVEIS = new LinkedList<>();
-            private HashMap<Integer, Boolean> PORTAS_USADAS = new HashMap<>();
-            
-            private final int INICIO_INTERVALO;
-            private final int FIM_INTERVALO;
-            
-            public GerenciadorDePortas(int inicioIntervalo, int fimIntervalo) {
-                if(fimIntervalo - inicioIntervalo < 0) {
-                    throw new IllegalArgumentException("O fim do intervalo deve ser maior do que o inicio");
-                }
-                
-                this.INICIO_INTERVALO = inicioIntervalo;
-                this.FIM_INTERVALO = fimIntervalo;
-                
-                for(int porta = this.INICIO_INTERVALO; porta <= this.FIM_INTERVALO; porta++) {
-                    this.PORTAS_DISPONIVEIS.add(porta);
-                    this.PORTAS_USADAS.put(porta, false);
-                }
-            }
-            
-            public int getPorta() {
-                if(this.PORTAS_DISPONIVEIS.size() == 0) {
-                    throw new RuntimeException("Nenhuma porta disponivel");
-                }
-                
-                int porta = PORTAS_DISPONIVEIS.getFirst();
-                this.PORTAS_USADAS.put(porta, true);
-                
-                return porta;
-            }
-            
-            public void liberarPorta(int porta) {
-                if(this.PORTAS_USADAS.get(porta)) {
-                    this.PORTAS_DISPONIVEIS.add(porta);
-                    this.PORTAS_USADAS.put(porta, false);
-                }
-            }
-        }
-        
         private final GerenciadorDePortas GERENCIADOR_DE_PORTAS;
         private Estado estado = DESATIVADO;
         
@@ -202,13 +166,12 @@ public abstract class Stub implements Closeable {
                 Mensageiro mensageiro,
                 InetAddress enderecoServidor,
                 Interpretador interpretador,
-                int inicioIntervaloUDP,
-                int fimIntervaloUDP) {
+                GerenciadorDePortas gerenciadorDePortas) {
             this.MENSAGEIRO = mensageiro;
             this.ENDERECO_DO_SERVIDOR = enderecoServidor;
             this.INTERPRETADOR = interpretador;
             
-            this.GERENCIADOR_DE_PORTAS = new GerenciadorDePortas(inicioIntervaloUDP, fimIntervaloUDP);
+            this.GERENCIADOR_DE_PORTAS = gerenciadorDePortas;
         }
         
         
@@ -220,9 +183,10 @@ public abstract class Stub implements Closeable {
          * que foi aberta.
          */
         public void iniciarPedidoDeAberturaUDP() {
+            int porta = GERENCIADOR_DE_PORTAS.getPorta();
             try {
                 if(!this.MENSAGEIRO.comunicadorUDPEstaAberto()) {
-                    this.MENSAGEIRO.iniciarUDP(GERENCIADOR_DE_PORTAS.getPorta());
+                    this.MENSAGEIRO.iniciarUDP(porta);
                     
                     int portaDeEscutaServidor = this.MENSAGEIRO.getPortaEscutaUDP();
                     byte[] mensagem = this.INTERPRETADOR.codificarAtenderPedidoInicioDeAberturaUDP(portaDeEscutaServidor);
@@ -232,7 +196,7 @@ public abstract class Stub implements Closeable {
                     this.SEMAFORO_ATIVACAO_UDP.acquire();
                 }
             } catch(IOException ioe) {
-                Logger.registrar(ERRO, new String[]{"STUB"}, "Erro ao tentar iniciar a comunicacao.", ioe);
+                Logger.registrar(ERRO, new String[]{"STUB"}, "Erro ao tentar iniciar a comunicacao: " + ioe.getMessage(), ioe);
                 this.SEMAFORO_ATIVACAO_UDP.release();
                 throw new RuntimeException("Nao foi possivel iniciar a comunicacao com o host");
             } catch(InterruptedException ie) {

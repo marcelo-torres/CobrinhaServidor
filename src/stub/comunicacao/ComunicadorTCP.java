@@ -166,7 +166,7 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
     private Comunicador.ControladorKeepAlive controladorKeepAlive;
     private UncaughtExceptionHandler GERENCIADOR_DE_EXCEPTION;
     
-    private final int TEMPO_MS_LIMITE_ESPERA_FECHAR_CONEXAO = (4)/*S*/ * (1000)/*MS*/;
+    private final int TEMPO_MS_LIMITE_ESPERA_FECHAR_CONEXAO = (8)/*S*/ * (1000)/*MS*/;
     private final int RECEBIMENTO_TEMPO_MS_LIMITE_KEEP_ALIVE = (10)/*S*/ * (1000)/*MS*/;
     private final int RECEBIMENTO_QUANTIDADE_MENSAGENS_KEEP_ALIVE = 2;
     
@@ -265,6 +265,11 @@ public class ComunicadorTCP extends Comunicador implements Closeable {
             ioe.printStackTrace();
         }
         
+        /*
+            redundancia de fechamento: caso as threads nao sejam paradas pelos
+            outros metodos que compoem o protocolo de fechamento, havera um
+            fechamento pela forca bruta.
+        */
         this.enviador.pararExecucao();
         this.receptor.pararExecucao();
     }

@@ -18,10 +18,13 @@ public class Jogador implements IJogadorVisaoStubServidor, IJogadorVisaoControla
     private ILocal localAtual;
     private IControladorGeralVisaoAplicacaoServidor controleJogador;
 
-    public Jogador(ControladorGeral cg, IControladorGeralVisaoAplicacaoServidor controleJogador) {
+    public Jogador(ControladorGeral cg) {
         this.cg = cg;
-        this.controleJogador = controleJogador;
         this.cg.entrando(this);
+    }
+    
+    public void setControleJogador(IControladorGeralVisaoAplicacaoServidor controleJogador) {
+        this.controleJogador = controleJogador;
     }
     
     @Override
