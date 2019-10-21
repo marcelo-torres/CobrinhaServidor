@@ -8,12 +8,14 @@ import stub.comunicacao.GerenciadorDePortas;
 
 public class GerenciadorDeConexoesTeste  implements GerenciadorDeRequisicao {
 
+    GerenciadorDePortas gerenciadorDePortas = new GerenciadorDePortas(51300, 51310);
+    
     @Override
     public void gerenciarRequisicao(Socket socket) {
         
         JogadorTeste jogador = new JogadorTeste();
         
-        GerenciadorDePortas gerenciadorDePortas = new GerenciadorDePortas(51300, 51310);
+        
         GerenciadorDeCliente gerenciadorDeCliente = new GerenciadorDeCliente(jogador, socket, gerenciadorDePortas);
         gerenciadorDeCliente.iniciarStub();
         

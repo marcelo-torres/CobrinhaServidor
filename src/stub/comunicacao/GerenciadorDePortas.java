@@ -12,6 +12,7 @@ public class GerenciadorDePortas {
     private final int FIM_INTERVALO;
 
     private final boolean ALEATORIO;
+    private final Object LOCKER_FILA = new Object();
 
     public GerenciadorDePortas() {
         this.ALEATORIO = true;
@@ -34,24 +35,28 @@ public class GerenciadorDePortas {
         }
     }
 
-    public synchronized int getPorta() {
-        if(this.ALEATORIO) {
-            return -1;
-        }
-        if(this.PORTAS_DISPONIVEIS.size() == 0) {
-            throw new RuntimeException("Nenhuma porta disponivel");
-        }
+    public int getPorta() {
+        synchronized (this.LOCKER_FILA) {
+            if(this.ALEATORIO) {
+                return -1; //codigo pro comunicador saber que eh aleatoria
+            }
+            if(this.PORTAS_DISPONIVEIS.size() == 0) {
+                throw new RuntimeException("Nenhuma porta disponivel");
+            }
 
-        int porta = PORTAS_DISPONIVEIS.removeFirst();
-        this.PORTAS_USADAS.put(porta, true);
+            int porta = PORTAS_DISPONIVEIS.removeFirst();
+            this.PORTAS_USADAS.put(porta, true);
 
-        return porta;
+            return porta;
+        }
     }
 
-    public synchronized void liberarPorta(int porta) {
-        if(this.PORTAS_USADAS.get(porta)) {
-            this.PORTAS_DISPONIVEIS.add(porta);
-            this.PORTAS_USADAS.put(porta, false);
+    public void liberarPorta(int porta) {
+        synchronized (this.LOCKER_FILA) {
+            if(this.PORTAS_USADAS.get(porta)) {
+                this.PORTAS_DISPONIVEIS.add(porta);
+                this.PORTAS_USADAS.put(porta, false);
+            }
         }
     }
 }

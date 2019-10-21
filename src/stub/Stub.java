@@ -242,9 +242,8 @@ public abstract class Stub implements Closeable {
                     this.hostProntoParaReceberUDP = true;
                 }*/
             } catch(IOException ioe) {
-                Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro ao tentar iniciar a comunicacao.", ioe);
+                Logger.registrar(ERRO, new String[]{"INTERPRETADOR"}, "Erro ao tentar iniciar a comunicacao: " + ioe.getMessage(), ioe);
                 this.SEMAFORO_ATIVACAO_UDP.release();
-                ioe.printStackTrace();
                 throw new RuntimeException("Nao foi possivel iniciar a comunicacao com o servidor");
             }
         }
