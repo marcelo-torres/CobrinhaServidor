@@ -148,7 +148,7 @@ public class DAO {
             }
             
             try {
-                int derrotas = rs.getInt(0);
+                int derrotas = rs.getInt(1);
                 acesso.executarQuery("UPDATE jogadores SET derrotas = " + (derrotas + 1) + " WHERE nome = '" + nome + "';");
                 return true;
                 
