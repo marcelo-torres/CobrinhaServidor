@@ -30,11 +30,12 @@ public class Combinador implements Runnable {
 		while(rodando) {
 			try {
 				sleeperDoCombinador.acquire();
-				
-                                LinkedList<ArrayList<IJogadorProtegido>> lista = estrutura.listaDeParesFormados();
+				LinkedList<ArrayList<IJogadorProtegido>> lista = estrutura.listaDeParesFormados();
 				
                                 for(ArrayList<IJogadorProtegido> jogadores : lista) {		
                                         cg.jogadoresCombinados(jogadores.get(0), jogadores.get(1));
+                                        decrementaQuant();
+                                        decrementaQuant();
 				}
 				Thread.sleep(this.tempoDormindo);
 				

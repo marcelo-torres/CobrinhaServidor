@@ -33,6 +33,7 @@ public class EstruturaCombinador {
 			semInternoMapaEntrada.acquire();
 			acquired++;
 			mapaEntrada.put(jogador, nova);
+                        //System.out.println("ganhou todos");
 			
 		} catch (InterruptedException e) {
 
@@ -41,18 +42,23 @@ public class EstruturaCombinador {
 		finally {
 			if(acquired > 0) {
 				semExternoMapaEntrada.release();
+                                //System.out.println("liberou externo");
 			}
 			if(acquired > 1) {
 				semInternoMapaEntrada.release();
+                                //System.out.println("liberou todos");
 			}
+                        
 		}
 	}
 	
 	private void transferir() { // tranfere os novos jogadores para a estrutura principal
 		
+                
 		for(IJogadorProtegido j: mapaEntrada.keySet()) {
-			inserirPrincipal(mapaEntrada.remove(j));
+			inserirPrincipal(mapaEntrada.get(j));
 		}
+                mapaEntrada.clear();
 	}
 	
 	private boolean removerMapaInicial(IJogadorProtegido jogador) {
@@ -129,7 +135,7 @@ public class EstruturaCombinador {
 			//insere na fila ordenada por tempo
 			atual = cabeca.getProximoTempo();
 
-			while(capsula.getTimeStamp() <= atual.getTimeStamp()) { 
+			while(capsula.getTimeStamp() <= atual.getTimeStamp() && atual != cabeca) { 
 			//menor TS = mais velho, para quando achar um mais velho
 			//cabeca sempre entra primeiro, entao sempre mais velha
 			//mais velho da estrutura do anterior at� o atual
@@ -164,20 +170,23 @@ public class EstruturaCombinador {
 		
 		int acquired = 0;
 		try {
+                    
 			semInternoEstruturaPrincipal.acquire();
 			acquired++;
+                        
 			semInternoMapaEntrada.acquire();
 			acquired++;
 			
 			transferir();
 			
-			semInternoMapaEntrada.acquire();
+			semInternoMapaEntrada.release();
 			acquired--;
 			
 			long tempoAtual = System.currentTimeMillis();
 			Capsula atualBusca = cabeca.getAnteriorTempo();
 			
-			while(atualBusca != cabeca) {
+                        
+			while(!atualBusca.isCabeca()) {
 				Capsula alcancada = atualBusca.expandir(passosPorSegundos, tempoAtual, maxSegundos);
 				
 				if(alcancada == null) { // N�o alca�ou ninguem

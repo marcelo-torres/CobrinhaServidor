@@ -152,7 +152,6 @@ public class Interpretador {
      */
     public void interpretar(byte[] mensagem) {        
         PacoteDeChamadaRemota pacoteDeChamadaRemota = (PacoteDeChamadaRemota) this.converterParaObjeto(mensagem);
-        
         if(pacoteDeChamadaRemota.getTipo() == PacoteDeChamadaRemota.Tipo.RETORNO) {
             FilaMonitorada fila = this.FILA_RETORNOS.get(pacoteDeChamadaRemota.getNomeDoMetodo());
             if(fila != null) {

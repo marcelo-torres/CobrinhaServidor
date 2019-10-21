@@ -20,7 +20,7 @@ public class ControladorGeral {
     private Combinador combinador = new Combinador(this, 1000);
     private Thread trdCombinador = new Thread(this.combinador);
     private int jogadoresLigados;
-    private Object lockerJogadoresLigados;
+    private final Object lockerJogadoresLigados = new Object();
     
     private FilaMonitorada<ArrayList<IJogadorProtegido>> listaIniciar = new FilaMonitorada<ArrayList<IJogadorProtegido>>(Integer.MAX_VALUE);
 
@@ -163,11 +163,12 @@ public class ControladorGeral {
 
 
     public void jogadoresCombinados(IJogadorProtegido jogadorA, IJogadorProtegido jogadorB) {
-
+        
         ArrayList<IJogadorProtegido> novoPar = new ArrayList<IJogadorProtegido>();
         novoPar.add(jogadorA);
         novoPar.add(jogadorB);
         listaIniciar.adicionar(novoPar);
+        
     }
 
     public boolean iniciarPartida(IJogadorProtegido jogador) {
@@ -226,10 +227,15 @@ public class ControladorGeral {
     }
     
     public void iniciarPartidaPronta(IJogadorProtegido jogadorA, IJogadorProtegido jogadorB){
+        IJogadorVisaoControladorServidor jA = (IJogadorVisaoControladorServidor) jogadorA;
+        IJogadorVisaoControladorServidor jB = (IJogadorVisaoControladorServidor) jogadorB;
         
         ControladorPartida novoCP = new ControladorPartida(jogadorA, jogadorB, this);
         setLocalAtual(jogadorB, novoCP);
         setLocalAtual(jogadorA, novoCP);
+        
+        jA.irParaPartida();
+        jB.irParaPartida();
         
     }
     

@@ -29,10 +29,14 @@ public class Jogador implements IJogadorVisaoStubServidor, IJogadorVisaoControla
     
     @Override
     public void iniciarSessao(String nome) {
+        
+        
         if(nome == null || nome.isEmpty()){
             controleJogador.falha("Nome inválido.");
         }
+        
         this.nome = nome;
+        controleJogador.exibirTelaSessao();
     }
 
     @Override

@@ -7,7 +7,7 @@ import model.agentes.*;
 public class IniciadorDePartidas implements Runnable {
 
     private ControladorGeral controladorGeral;
-    boolean running;
+    boolean running = true;
 
     public IniciadorDePartidas(ControladorGeral controladorGeral) {
         this.controladorGeral = controladorGeral;
@@ -18,12 +18,15 @@ public class IniciadorDePartidas implements Runnable {
 
         // TODO Auto-generated method stub
         while (running) {
+            
+                       
             ArrayList<IJogadorProtegido> novo = controladorGeral.getPar();
-
+            iniciaPartida(novo.get(0), novo.get(1));
+            
         }
     }
 
-    private void iniciaPartida(IJogadorVisaoStubServidor jogadorA, IJogadorVisaoStubServidor jogadorB) {
+    private void iniciaPartida(IJogadorProtegido jogadorA, IJogadorProtegido jogadorB) {
         controladorGeral.iniciarPartidaPronta(jogadorA, jogadorB);
         
     }

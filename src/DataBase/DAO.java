@@ -5,8 +5,10 @@
  */
 package DataBase;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,11 +30,17 @@ public class DAO {
         
         synchronized(acesso){
             
-            ResultSet rs = acesso.buscar("SELECT nome FROM jogadores WHERE nome = " + nome);
+                       
+            
+            Connection con = acesso.getCon();
+        
+            String query = ("SELECT nome FROM jogadores WHERE nome = '" + nome + "';");
+        
+            ResultSet rs = null;
             try {
                 
-                if(rs.getString("nome") == null){
-                    acesso.executarQuery("INSERT INTO jogadores(nome) VALUES ('"+nome+"')");
+                if(rs == null || rs.getString("nome") == null || rs.getString("nome").isEmpty()){
+                    acesso.executarQuery("INSERT INTO jogadores(nome, vitorias, derrotas, empates) VALUES ('"+nome+"', 0, 0, 0);");
                     return true;
                 }
                    
@@ -49,13 +57,46 @@ public class DAO {
         
         
         double vd = -1;    
-        ResultSet rs = acesso.buscar("SELECT (vitorias, derrotas) FROM jogadores WHERE nome = " + nome);
+        
+        inserirJogador(nome);
+        Connection con = acesso.getCon();
+        
+        String query = ("SELECT nome, vitorias, derrotas FROM jogadores WHERE nome = '" + nome+ "';");
+        
+        ResultSet rs = null;
+        Statement statement = null;
+        try {
+            statement = con.createStatement();
+        } catch (SQLException ex) {
+            Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        try {
+            rs = statement.executeQuery(query);
+        } catch (SQLException ex) {
+            Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+            
+            
+        
+        
+
+        
+        
         try {
             
-            int vitorias = rs.getInt("vitorias");
-            int derrotas = rs.getInt("derrotas");
+            String nomeRetornado = rs.getString(1);
             
-            vd = ((double)vitorias) / ((double)derrotas);
+            
+            int vitorias = rs.getInt(2);
+            int derrotas = rs.getInt(3);
+            
+           
+            if(vitorias == 0){
+                vd = vitorias;
+            }
+            else vd = ((double)vitorias) / ((double)derrotas);
 
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
@@ -68,14 +109,20 @@ public class DAO {
     
     public boolean incrementaDerrota(String nome){
         synchronized(lockerDerrotas){
-            ResultSet rs = acesso.buscar("SELECT (derrotas) FROM jogadores WHERE nome = " + nome);
+            
+            
+            Connection con = acesso.getCon();
+        
+            String query = ("SELECT derrotas FROM jogadores WHERE nome = '" + nome + "';");
+        
+            ResultSet rs = null;
             try {
                 int derrotas = rs.getInt("derrotas");
-                acesso.executarQuery("UPDATE jogadores SET derrotas = " + (derrotas + 1) + " WHERE nome = " + nome);
+                acesso.executarQuery("UPDATE jogadores SET derrotas = " + (derrotas + 1) + " WHERE nome = '" + nome + "';");
                 return true;
                 
             } catch (SQLException ex) {
-                
+                ex.printStackTrace();
             }
             return false;
         }
@@ -83,14 +130,22 @@ public class DAO {
     
     public boolean incrementaVitorias(String nome){
         synchronized(lockerVitorias){
-            ResultSet rs = acesso.buscar("SELECT (vitorias) FROM jogadores WHERE nome = " + nome);
+            
+            
+            Connection con = acesso.getCon();
+        
+            String query = ("SELECT vitorias FROM jogadores WHERE nome = '" + nome + "';");
+        
+            ResultSet rs = null;
+            
+            
             try {
                 int vitorias = rs.getInt("vitorias");
-                acesso.executarQuery("UPDATE jogadores SET vitorias = " + (vitorias + 1) + " WHERE nome = " + nome);
+                acesso.executarQuery("UPDATE jogadores SET vitorias = " + (vitorias + 1) + " WHERE nome = '" + nome + "';");
                 return true;
                 
             } catch (SQLException ex) {
-                
+                ex.printStackTrace();
             }
             return false;
         }
@@ -98,14 +153,20 @@ public class DAO {
     
     public boolean incrementaEmpates(String nome){
         synchronized(lockerEmpates){
-            ResultSet rs = acesso.buscar("SELECT (empates) FROM jogadores WHERE nome = " + nome);
+            
+            
+            Connection con = acesso.getCon();
+        
+            String query = ("SELECT empates FROM jogadores WHERE nome = '" + nome + "';");
+        
+            ResultSet rs = null;
             try {
                 int empates = rs.getInt("empates");
-                acesso.executarQuery("UPDATE jogadores SET empates = " + (empates + 1) + " WHERE nome = " + nome);
+                acesso.executarQuery("UPDATE jogadores SET empates = " + (empates + 1) + " WHERE nome = '" + nome + "';");
                 return true;
                 
             } catch (SQLException ex) {
-                
+                ex.printStackTrace();
             }
             return false;
         }

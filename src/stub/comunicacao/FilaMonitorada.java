@@ -83,20 +83,26 @@ public class FilaMonitorada<T>{
 
     public T remover() {
         if(this.fechada) return null;
-        
+        boolean releaseTudo = true;
         try {
             SEMAFORO_CONTADOR.acquire();
-            //System.out.println("[remover 1] tentando acquire com o semáforo: " + semaforoGeral);
+            //System.out.println("[remover 1] tentando acquire com o semáforo: ");
             SEMAFORO_GERAL.acquire();
-            //System.out.println("[remover 2] acquire obtido e o semáforo: " + semaforoGeral);
+            releaseTudo = false;
+            //System.out.println("[remover 2] acquire obtido e o semáforo: ");
             T item = FILA.removeFirst();
-            SEMAFORO_GERAL.release();		
-            //System.out.println("[remover 3] semáforo released: " + semaforoGeral);
+            SEMAFORO_GERAL.release();	
+            releaseTudo = true;
+            //System.out.println("[remover 3] semáforo released: ");
             return item;
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             //e.printStackTrace();
-        } 
+        } finally{
+            if(!releaseTudo){
+                SEMAFORO_GERAL.release();	
+            }
+        }
 
         return null;
     }

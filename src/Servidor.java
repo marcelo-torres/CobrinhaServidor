@@ -33,7 +33,7 @@ public class Servidor implements Runnable {
         /* ########################### ALTERE AQUI ########################## */
         
         String enderecoEscutaServidorString = "127.0.0.1";
-        int portaDeEscuta = 2573;
+        int portaDeEscuta = 1855;
         
         /* ################################################################## */
         

@@ -50,7 +50,7 @@ public class Logger {
     
     public static void registrar(Tipo tipo, String mensagem) {
         String mensagemImpressao = ("[" + tipo.getTIPO() + "] - " + mensagem);
-        escreverMensagem(mensagemImpressao);
+        //escreverMensagem(mensagemImpressao);
     }
     
     private static void escreverMensagem(String mensagem) {

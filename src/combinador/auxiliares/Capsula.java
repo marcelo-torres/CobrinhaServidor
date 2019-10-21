@@ -29,7 +29,12 @@ public class Capsula {
 	
 	public static Capsula novaCabeca() {
 		Capsula nova = new Capsula();
-		
+                nova.jogador = null;
+		nova.setAnteriorTempo(nova);
+                nova.setProximoTempo(nova);
+                nova.setAnteriorVD(nova);
+                nova.setProximoVD(nova);
+                
 		nova.timeStamp = System.currentTimeMillis();
 		return nova;
 	}
