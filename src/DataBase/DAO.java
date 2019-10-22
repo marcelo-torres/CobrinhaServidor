@@ -88,7 +88,7 @@ public class DAO {
         
         try {
             
-            System.out.println("Nome: " + nome + " = " +   rs.getString(1));
+            
             
             int vitorias = rs.getInt(2);
             int derrotas = rs.getInt(3);
@@ -106,6 +106,46 @@ public class DAO {
         return vd;
         
 
+    }
+    
+    public void printaBanco(){
+        Connection con = acesso.getCon();
+        
+        String query = ("SELECT * FROM jogadores;");
+        
+        ResultSet rs = null;
+        Statement statement = null;
+        try {
+            statement = con.createStatement();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            
+        }
+        try {
+            rs = statement.executeQuery(query);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            
+        }
+            
+        
+        try {
+            
+            
+            
+            while(rs.next()){
+                System.out.println("\nNome: " + rs.getString(1) + 
+                        "; \nVitorias: " + rs.getString(2) + 
+                        "; \nDerrotas: " + rs.getString(3)+ 
+                        "; \nEmpates: " + rs.getString(4) + ";");
+            }
+            
+            
+
+        } catch (SQLException ex) {
+           ex.printStackTrace();
+
+        }
     }
     
     public boolean incrementaDerrota(String nome){

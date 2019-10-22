@@ -34,7 +34,8 @@ public class ControladorGeral {
         
         this.trdCombinador.start();
         this.trdIniciadoraDePartidas.start();
-
+        System.out.println("Printa banco no contrutor do controlador geral servidor");
+        dao.printaBanco();
     }
     
     public void enviarQuadro(IJogadorProtegido jogador, Arena arena) {
