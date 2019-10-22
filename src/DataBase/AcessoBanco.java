@@ -11,9 +11,7 @@ package DataBase;
  */
 import java.sql.*;
 
-import java.sql.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public class AcessoBanco {
 
@@ -33,7 +31,7 @@ public class AcessoBanco {
         con = DriverManager.getConnection("jdbc:sqlite:banco.db");
         Statement statement = con.createStatement();
         // criando uma tabela
-        statement.execute("CREATE TABLE IF NOT EXISTS jogadores(nome VARCHAR, vitorias INTEGER, derrotas INTEGER, empates INTEGER)");
+        statement.execute("CREATE TABLE IF NOT EXISTS jogadores(nome VARCHAR PRIMARY KEY , vitorias INTEGER, derrotas INTEGER, empates INTEGER);");
         
     }
     
@@ -88,7 +86,7 @@ public class AcessoBanco {
             saida = true;
             
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
+            ex.printStackTrace();
 
         }
         return saida;

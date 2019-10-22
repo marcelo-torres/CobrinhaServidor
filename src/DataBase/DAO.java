@@ -34,34 +34,25 @@ public class DAO {
             
             Connection con = acesso.getCon();
         
-            String query = ("SELECT nome FROM jogadores WHERE nome = '" + nome + "';");
+            String query = ("SELECT nome FROM jogadores WHERE nome = '" + nome + "' ;");
         
             ResultSet rs = null;
 
             Statement statement = null;
+            
             try {
                 statement = con.createStatement();
-            } catch (SQLException ex) {
-                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
-
-            }
-            
-            try {
                 rs = statement.executeQuery(query);
-            } catch (SQLException ex) {
-                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
-
-            }
-            
-            try {
                 
-                if(rs == null || rs.getString("nome") == null || rs.getString("nome").isEmpty()){
-                    acesso.executarQuery("INSERT INTO jogadores(nome, vitorias, derrotas, empates) VALUES ('"+nome+"', 0, 0, 0);");
+                                
+                if(!rs.next()){
+                    acesso.executarQuery("INSERT INTO jogadores(nome, vitorias, derrotas, empates) VALUES ('"+nome+"', 0, 0, 0) ;");
                     return true;
                 }
                    
             } catch (SQLException ex) {
-                System.out.println(ex.getMessage());
+                
+                ex.printStackTrace();
                 
             }
             return false;
@@ -84,26 +75,20 @@ public class DAO {
         try {
             statement = con.createStatement();
         } catch (SQLException ex) {
-            Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
             
         }
         try {
             rs = statement.executeQuery(query);
         } catch (SQLException ex) {
-            Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
             
         }
             
-            
-        
-        
-
-        
         
         try {
             
-            String nomeRetornado = rs.getString(1);
-            
+            System.out.println("Nome: " + nome + " = " +   rs.getString(1));
             
             int vitorias = rs.getInt(2);
             int derrotas = rs.getInt(3);
@@ -115,7 +100,7 @@ public class DAO {
             else vd = ((double)vitorias) / ((double)derrotas);
 
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
+           ex.printStackTrace();
 
         }
         return vd;
@@ -129,26 +114,17 @@ public class DAO {
             
             Connection con = acesso.getCon();
         
-            String query = ("SELECT derrotas FROM jogadores WHERE nome = '" + nome + "';");
+            String query = ("SELECT nome, derrotas FROM jogadores WHERE nome = '" + nome + "';");
         
-            ResultSet rs = null;
-            Statement statement = null;
-            try {
-                statement = con.createStatement();
-            } catch (SQLException ex) {
-                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
-
-            }
             
+           
             try {
-                rs = statement.executeQuery(query);
-            } catch (SQLException ex) {
-                Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
-
-            }
-            
-            try {
-                int derrotas = rs.getInt(1);
+                
+                Statement statement = con.createStatement();
+                
+                ResultSet rs = statement.executeQuery(query);
+                
+                int derrotas = rs.getInt(2);
                 acesso.executarQuery("UPDATE jogadores SET derrotas = " + (derrotas + 1) + " WHERE nome = '" + nome + "';");
                 return true;
                 

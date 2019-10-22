@@ -38,7 +38,7 @@ public class ControladorGeral {
     }
     
     public void enviarQuadro(IJogadorProtegido jogador, Arena arena) {
-        System.out.println("Arena enviada");
+        
         IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor)jogador;
         j.novoQuadro(arena);
         

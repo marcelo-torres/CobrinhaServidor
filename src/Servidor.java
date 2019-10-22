@@ -37,6 +37,9 @@ public class Servidor implements Runnable {
         
         /* ################################################################## */
         
+        
+        
+        
         InetAddress enderecoEscutaServidor = null;
         try {
             enderecoEscutaServidor = InetAddress.getByName(enderecoEscutaServidorString);
