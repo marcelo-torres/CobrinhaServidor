@@ -178,8 +178,12 @@ public class ControladorGeral {
     public boolean iniciarPartida(IJogadorProtegido jogador) {
         IJogadorVisaoControladorServidor j = (IJogadorVisaoControladorServidor) jogador;
         
-        if(j.getNome() == null || j.getNome().isEmpty());
-        return combinador.inserir(jogador);
+        if(j.getNome() == null || j.getNome().isEmpty()) return false;
+        if(combinador.inserir(jogador)){
+            j.combinando();
+        }
+        /////////colocar aviso de falha aqui
+        return false;
     }
 
     public boolean desistirDeIniciar(IJogadorProtegido jogador) {

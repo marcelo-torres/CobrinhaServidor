@@ -137,7 +137,7 @@ public class DAO {
                 System.out.println("\nNome: " + rs.getString(1) + 
                         "; \nVitorias: " + rs.getString(2) + 
                         "; \nDerrotas: " + rs.getString(3)+ 
-                        "; \nEmpates: " + rs.getString(4) + ";");
+                        "; \nEmpates: " + rs.getString(4) + ".\n");
             }
             
             
