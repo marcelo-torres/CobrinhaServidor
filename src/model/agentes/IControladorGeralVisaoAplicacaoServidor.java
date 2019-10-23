@@ -24,5 +24,4 @@ public interface IControladorGeralVisaoAplicacaoServidor {
     public void falhaAoLogar(String mensagemTextual);
     public void falha(String nome_inválido);
     
-    public void procurandoPartida();
 }

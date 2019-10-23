@@ -138,7 +138,7 @@ public class Jogador implements IJogadorVisaoStubServidor, IJogadorVisaoControla
 
     @Override
     public void combinando() {
-        controleJogador.procurandoPartida();
+        controleJogador.exibirTelaBusca();
     }
 
     @Override
