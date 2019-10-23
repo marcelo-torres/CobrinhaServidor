@@ -53,7 +53,8 @@ public class GerenciadorDePortas {
 
     public void liberarPorta(int porta) {
         synchronized (this.LOCKER_FILA) {
-            if(this.PORTAS_USADAS.get(porta)) {
+            Boolean usada = this.PORTAS_USADAS.get(porta);
+            if(usada != null && usada) {
                 this.PORTAS_DISPONIVEIS.add(porta);
                 this.PORTAS_USADAS.put(porta, false);
             }
