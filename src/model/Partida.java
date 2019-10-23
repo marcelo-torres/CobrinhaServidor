@@ -136,17 +136,18 @@ public class Partida {
         if(cabeca1.isCollision(cabeca2) || cabeca2.isCollision(cabeca1))
             return 3;
         
-        for(Posicao posicao : cobra1){
-            if(posicao.isCollision(cabeca1) || posicao.isCollision(cabeca2)){
+        for(int i = 1; i < cobra1.size(); i++){
+            if(cobra1.get(i).isCollision(cabeca1) || cobra1.get(i).isCollision(cabeca2)){
                 return 1;
             }
         }
         
-        for(Posicao posicao : cobra2){
-            if(posicao.isCollision(cabeca1) || posicao.isCollision(cabeca2)){
+        for(int i = 1; i < cobra2.size(); i++){
+            if(cobra2.get(i).isCollision(cabeca1) || cobra2.get(i).isCollision(cabeca2)){
                 return 2;
             }
         }
+        
         return 0;
     }
     
