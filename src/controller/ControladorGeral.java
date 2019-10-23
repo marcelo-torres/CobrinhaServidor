@@ -295,5 +295,7 @@ public class ControladorGeral {
             ctr.finalizarPartida(j);
             
         }
+        
+        
     }
 }

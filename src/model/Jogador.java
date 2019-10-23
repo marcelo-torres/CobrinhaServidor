@@ -144,6 +144,7 @@ public class Jogador implements IJogadorVisaoStubServidor, IJogadorVisaoControla
     @Override
     public void encerrarSessao() {
         cg.saindo(this);
+        controleJogador.exibirTelaInicio();
     }
 
     
