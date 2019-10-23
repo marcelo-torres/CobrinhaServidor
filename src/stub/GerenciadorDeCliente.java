@@ -125,13 +125,13 @@ public class GerenciadorDeCliente extends Stub implements IControladorGeralVisao
         byte[] mensagem = this.INTERPRETADOR.codificarFalha(stringFalha);
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
-    
+/*    
     @Override
     public void procurandoPartida() {
         byte[] mensagem = this.INTERPRETADOR.codificarProcurandoPartida();
         this.MENSAGEIRO.inserirFilaEnvioTCP(mensagem);
     }
-    
+  */  
     
     @Override
     protected LinkedList<Comando> criarComandosNecessarios() {

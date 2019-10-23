@@ -11,7 +11,7 @@ public class ProcurandoPartida extends ComandoControladorDePartida {
     
     @Override
     public Object executar(Parametros parametros) {
-        super.CONTROLADOR_PARTIDA.procurandoPartida();
+       // super.CONTROLADOR_PARTIDA.procurandoPartida();
         return null;
     }
 }

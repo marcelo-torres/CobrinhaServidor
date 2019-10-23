@@ -32,7 +32,7 @@ public class GerenciadorDeConexoesTeste  implements GerenciadorDeRequisicao {
         gerenciadorDeCliente.falhaAoLogar("MENSAGEM DE FALHA AO LOGAR");
         gerenciadorDeCliente.falha("MENSAGEM DE FALHA");
     
-        gerenciadorDeCliente.procurandoPartida();
+        
         
     }
 }
