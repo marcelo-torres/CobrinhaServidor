@@ -57,6 +57,7 @@ public class ComunicadorUDP extends Comunicador implements Closeable {
                     do {
                         try {
                             this.SOCKET.receive(pacote);
+                            System.out.println("[DEBUG] ---> ---> CHEGOU UMA MENSAGEM UDP NO SERVIDOR");
                             break;
                         } catch(SocketTimeoutException ste) {
                             if(!this.emExecucao()) break;
